@@ -2,12 +2,17 @@
 
 Agent Oculus is an open-source financial context engine designed to provide fast, readable, and actionable market signals. It acts as a modular synthesis layer for financial data, enabling retail traders to monitor portfolios, track macro regimes, and build custom investment workflows using Hermes Agent.
 
-## Why Agent Oculus?
+## Capabilities
 
-Oculus is built to be a foundational layer that allows you curate deep contextual understanding of market regimes and optimize the investor's decision making process:
-- **Modular Synthesis:** Pre-integrated hooks for portfolio data (Public.com) and macro signals (WorldMonitor).
-- **Agentic Infrastructure:** Built on Hermes Agent for persistent memory, multi-platform connectivity, and automated tool scheduling.
-- **Extensible Integration:** Easily add your own data sources, analytic models, or trade-signaling logic by dropping tools into the `tools/` directory.
+Agent Oculus provides structured financial signals to inform decision-making:
+
+- **Portfolio Context:** Integrates with brokerage APIs to track real-time positions, buying power, and account health.
+- **WorldMonitor Macro Intelligence:** Connects to WorldMonitor feeds to track global macro regimes, stablecoin peg stability, and critical supply chain chokepoints.
+- **Volatility Analysis:** Real-time IV rank and percentile monitoring to identify high-volatility regimes.
+- **Systematic Verdicts:** Synthesizes portfolio and macro data into structured JSON signals, offering regime classifications (e.g., TRANSITIONAL, HIGH_VOLATILITY) and strategy recommendations.
+- **Safety-First Execution:** Designed for decision support; automated trading is strictly opt-in and disabled by default.
+
+*Note: Oculus utilizes a fallback system that maintains visibility even when primary APIs are unavailable, ensuring the agent remains in a functional "read-only" state.*
 
 ## Quick Start
 
@@ -23,15 +28,16 @@ Copy the example environment file, then add your credentials and connect your Wo
 ```bash
 cp ~/.hermes/profiles/oculus/.env.EXAMPLE ~/.hermes/profiles/oculus/.env
 # Edit ~/.hermes/profiles/oculus/.env with your API keys:
-# PUBLIC_ACCESS_TOKEN=...
-# WM_BASE_URL=...
+# PUBLIC_ACCESS_TOKEN=*** WM_BASE_URL=...
 ```
 
 ### 3. Launch
-Launch your agent via the installed alias:
+Setup your API provider and your model of choice and launch the agent via the installed alias:
 ```bash
+oculus model
 oculus
 ```
+**Important:** Always run the `oculus model` on a **fresh install** of Hermes Agent to avoid conflicts with API key configurations.
 
 ## Adding Your Own Integrations
 Agent Oculus is built to be modified. To add a new data source or integration:
