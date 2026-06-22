@@ -1,10 +1,10 @@
 # Agent Oculus
 
-Agent Oculus is an open-source financial context engine designed to provide fast, readable, and actionable market signals. It acts as a modular synthesis layer for financial data, enabling developers to monitor portfolios, track macro regimes, and build custom investment workflows using Hermes Agent.
+Agent Oculus is an open-source financial context engine designed to provide fast, readable, and actionable market signals. It acts as a modular synthesis layer for financial data, enabling retail traders to monitor portfolios, track macro regimes, and build custom investment workflows using Hermes Agent.
 
 ## Why Agent Oculus?
 
-Oculus is built to be a foundational layer, not a finished product. We provide:
+Oculus is built to be a foundational layer that allows you curate deep contextual understanding of market regimes and optimize the investor's decision making process:
 - **Modular Synthesis:** Pre-integrated hooks for portfolio data (Public.com) and macro signals (WorldMonitor).
 - **Agentic Infrastructure:** Built on Hermes Agent for persistent memory, multi-platform connectivity, and automated tool scheduling.
 - **Extensible Integration:** Easily add your own data sources, analytic models, or trade-signaling logic by dropping tools into the `tools/` directory.
@@ -19,7 +19,7 @@ hermes profile install https://github.com/Of-Arte/agent-oculus --name oculus --a
 ```
 
 ### 2. Configure Your Environment
-Copy the example environment file and add your credentials:
+Copy the example environment file, then add your credentials and connect your WorldMonitor API endpoint:
 ```bash
 cp ~/.hermes/profiles/oculus/.env.EXAMPLE ~/.hermes/profiles/oculus/.env
 # Edit ~/.hermes/profiles/oculus/.env with your API keys:
@@ -30,7 +30,7 @@ cp ~/.hermes/profiles/oculus/.env.EXAMPLE ~/.hermes/profiles/oculus/.env
 ### 3. Launch
 Launch your agent via the installed alias:
 ```bash
-oculus-fresh chat
+oculus
 ```
 
 ## Adding Your Own Integrations
