@@ -11,18 +11,21 @@ No skin layer. No profile-theme setup. Just install and run.
 
 ## Quick start
 
-```bash
-python -m pip install -e .
-python main.py --run-once
-```
-
-If you want the continuous signal loop instead:
+Install this repo as a Hermes profile:
 
 ```bash
-python main.py
+hermes profile install . --alias oculus
 ```
 
-For test/dev extras:
+Then run it through Hermes using the installed profile/alias, not as a standalone Python script:
+
+```bash
+hermes -p oculus
+```
+
+If you want a one-shot smoke test after install, use Hermes' normal command execution path from that profile and call the agent the same way you would in a real session.
+
+For test/dev extras while developing the repo itself:
 
 ```bash
 python -m pip install -e '.[dev]'
@@ -38,10 +41,11 @@ hermes doctor
 hermes model
 ```
 
-Then run Oculus from the repo root with the normal command execution path:
+Then install Oculus as a profile and run it through Hermes:
 
 ```bash
-python main.py --run-once
+hermes profile install . --alias oculus
+hermes -p oculus
 ```
 
 Notes:
