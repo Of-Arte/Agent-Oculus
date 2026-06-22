@@ -24,6 +24,8 @@ Do NOT:
 - `PUBLIC_ACCESS_TOKEN` set
 - `WM_BASE_URL` reachable (WorldMonitor running)
 - `EXECUTION_ENABLED` is false (unless user explicitly changed it)
+- Use the `oculus` Hermes profile when available; the repo installer will create
+  it if Hermes is installed, otherwise it falls back to the current Hermes home.
 
 2) Run one-shot context and summarize:
 - Command:
