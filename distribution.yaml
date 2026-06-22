@@ -1,6 +1,6 @@
 name: oculus
 version: 0.2.0
-description: "Agent Oculus: portfolio + macro context worker for Hermes (Public.com + WorldMonitor)"
+description: "Agent Oculus: fast finance context signals with a minimal runtime"
 hermes_requires: ">=0.17.0"
 author: "Of-Arte"
 license: "MIT"
@@ -14,9 +14,6 @@ env_requires:
 distribution_owned:
   - SOUL.md
   - config.yaml
-  - skills/
-  - plugins/
-  - skins/
   - core/
   - tools/
   - main.py
