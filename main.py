@@ -5,16 +5,13 @@ import asyncio
 import json
 import os
 import time
+from pathlib import Path
 from typing import Any
 
-import yaml
-from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
+from dotenv import load_dotenv
+import yaml
 
-from core.public_api.client import PublicApiClient
-from core.worldmonitor.client import WorldMonitorClient
-from tools.get_macro_context import get_macro_context
-from tools.get_portfolio_snapshot import get_portfolio_snapshot
 from tools.get_signals import get_signals
 
 
@@ -32,58 +29,45 @@ def mask_secret(value: str | None) -> str:
 
 
 def validate_config(config: dict[str, Any]) -> dict[str, Any]:
-    summary = {
+    schedule = config.get('schedule', {})
+    execution_enabled = os.getenv('EXECUTION_ENABLED', 'false').strip().lower() == 'true'
+    return {
         'public_base_url': config.get('public', {}).get('base_url', ''),
         'wm_base_url': os.getenv('WM_BASE_URL', ''),
-        'execution_enabled': os.getenv('EXECUTION_ENABLED', 'false').strip().lower() == 'true',
+        'signal_interval_minutes': schedule.get('context_signals_interval_minutes', 15),
+        'execution_enabled': bool(config.get('features', {}).get('execution_enabled', False) and execution_enabled),
         'public_token': mask_secret(os.getenv('PUBLIC_ACCESS_TOKEN')),
         'wm_key': mask_secret(os.getenv('WORLDMONITOR_API_KEY')),
     }
-    return summary
 
 
 def build_scheduler(config: dict[str, Any]) -> BackgroundScheduler:
     schedule = config.get('schedule', {})
     scheduler = BackgroundScheduler()
     scheduler.add_job(
-        lambda: asyncio.run(get_portfolio_snapshot()),
-        'interval',
-        minutes=int(schedule.get('portfolio_snapshot_interval_minutes', 5)),
-        id='portfolio_snapshot',
-    )
-    scheduler.add_job(
-        lambda: asyncio.run(get_macro_context()),
-        'interval',
-        minutes=int(schedule.get('macro_context_interval_minutes', 15)),
-        id='macro_context',
-    )
-    scheduler.add_job(
         lambda: asyncio.run(get_signals()),
         'interval',
-        minutes=int(schedule.get('options_refresh_interval_minutes', 15)),
-        id='options_signals_refresh',
+        minutes=int(schedule.get('context_signals_interval_minutes', 15)),
+        id='context_signals',
     )
     return scheduler
 
 
-async def run_once() -> dict[str, Any]:
-    portfolio = await get_portfolio_snapshot()
-    macro = await get_macro_context()
-    print('PORTFOLIO_SNAPSHOT:')
-    print(json.dumps(portfolio if portfolio is not None else None, indent=2, default=str))
-    print('MACRO_CONTEXT:')
-    print(json.dumps(macro if macro is not None else None, indent=2, default=str))
-    result = {'portfolio_snapshot': portfolio, 'macro_context': macro}
+async def run_once(symbols: list[str] | None = None) -> dict[str, Any]:
+    result = await get_signals(symbols=symbols)
+    print('CONTEXT_SIGNALS:')
+    print(json.dumps(result, indent=2, default=str))
     print('RUN_ONCE_RESULT:')
     print(json.dumps(result, indent=2, default=str))
     return result
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description='Agent Oculus V1 runtime')
+    parser = argparse.ArgumentParser(description='Agent Oculus context-signal runtime')
     parser.add_argument('--config', default='config.yaml')
     parser.add_argument('--dry-run', action='store_true')
     parser.add_argument('--run-once', action='store_true')
+    parser.add_argument('--symbols', nargs='*', default=None)
     args = parser.parse_args()
 
     load_dotenv()
@@ -92,26 +76,17 @@ def main() -> None:
     summary = validate_config(config)
     print(json.dumps({'config_summary': summary}, indent=2))
 
-    public_client = PublicApiClient(config.get('public', {}))
-    wm_client = WorldMonitorClient()
-
     execution_state = 'execution ENABLED' if summary['execution_enabled'] else 'execution disabled'
-    print(f'Agent Oculus V1 ready | regime detection active | {execution_state}')
+    print(f'Agent Oculus ready | context signals active | {execution_state}')
 
     if args.run_once:
-        try:
-            asyncio.run(run_once())
-        finally:
-            asyncio.run(public_client.close())
-            asyncio.run(wm_client.close())
+        asyncio.run(run_once(args.symbols))
         return
 
     scheduler = build_scheduler(config)
     scheduler.start()
     if args.dry_run:
         scheduler.shutdown(wait=False)
-        asyncio.run(public_client.close())
-        asyncio.run(wm_client.close())
         return
 
     try:
@@ -121,8 +96,6 @@ def main() -> None:
         pass
     finally:
         scheduler.shutdown(wait=False)
-        asyncio.run(public_client.close())
-        asyncio.run(wm_client.close())
 
 
 if __name__ == '__main__':

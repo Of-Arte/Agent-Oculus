@@ -1,156 +1,63 @@
-# Agent Oculus (agent-oculus)
+# Agent Oculus
 
-Agent Oculus is an open-source **finance context worker**.
-It pulls **portfolio + options data (Public.com)** and **macro/regime context (WorldMonitor: https://github.com/koala73/worldmonitor)** and returns structured outputs that an agent runtime (especially **Hermes Agent**) can use for context.
+Agent Oculus is an open-source financial context engine designed to provide fast, readable, and actionable market signals. It acts as a modular synthesis layer for financial data, enabling retail traders to monitor portfolios, track macro regimes, and build custom investment workflows using Hermes Agent.
 
-This repo is intentionally **execution-safe by default**: it focuses on **context + signals**, not unattended trading.
+## Core Capabilities
 
----
+Agent Oculus provides structured financial signals to inform decision-making:
 
-## Quick setup (Hermes Agent)
+- **Portfolio Context:** Integrates with brokerage APIs to track real-time positions, buying power, and account health.
+- **WorldMonitor Macro Intelligence:** Connects to WorldMonitor feeds to track global macro regimes, stablecoin peg stability, and critical supply chain chokepoints.
+- **Volatility Analysis:** Real-time IV rank and percentile monitoring to identify high-volatility regimes.
+- **Systematic Verdicts:** Synthesizes portfolio and macro data into structured JSON signals, offering regime classifications (e.g., TRANSITIONAL, HIGH_VOLATILITY) and strategy recommendations.
+- **Safety-First Execution:** Designed for decision support; automated trading is strictly opt-in and disabled by default.
 
-### Install
+*Note: Oculus utilizes a fallback system that maintains visibility even when primary APIs are unavailable.*
 
-```bash
-git clone https://github.com/Of-Arte/agent-oculus.git
-cd agent-oculus
-./scripts/install_agent_pack.sh
-```
+## Quick Start
 
-That installer will (when Hermes is installed) set everything up for you:
-- Skill → `~/.hermes/skills/oculus/`
-- Plugin → `~/.hermes/plugins/oculus/`
-- Agent pack manifest → `~/.hermes/agent-packs/oculus.yaml`
-- Profile → creates `oculus` profile if missing
-- Profile env → sets `OCULUS_WORKDIR` automatically
-- Optional UI polish → installs `~/.hermes/skins/oculus.yaml`
-
-### Run
-
-1) Start Hermes:
-   - `hermes`
-2) In-session:
-   - `/agent oculus`
-
-If you don’t see the tools:
-- `/tools` → enable toolset `oculus`
-
-Optional UI polish:
-- `hermes config set display.skin oculus`
-
-### What Oculus adds to Hermes
-
-Tools (2 total):
-- `oculus_healthcheck` — verify env/workdir/safety gate
-- `oculus_get_context` — fetch portfolio + macro context + derived signals
-
-Skill:
-- Scope lock + intent mapping (so Hermes stays on-task and uses the right tools)
-
----
-
-## Quick setup (standalone Python)
-
-### Prereqs
-- Python 3.11+
-- A WorldMonitor instance (local or hosted)
-- A Public.com access token
-
-### Install
+### 1. Install as a Hermes Profile
+Install the project directly from the repository to set up a dedicated agent identity with its own memory, skills, and configuration.
 
 ```bash
-git clone https://github.com/Of-Arte/agent-oculus.git
-cd agent-oculus
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -e .[dev]
-cp .env.example .env
+hermes profile install https://github.com/Of-Arte/agent-oculus --name oculus --alias
 ```
 
-### Configure
-
-Edit `.env`:
-- `PUBLIC_ACCESS_TOKEN` (required for broker data)
-- `WM_BASE_URL` (required for macro)
-- `EXECUTION_ENABLED=false` (keep false unless you explicitly intend otherwise)
-
-Optional:
-- `WORLDMONITOR_API_KEY`
-- `FINNHUB_API_KEY`, `EIA_API_KEY`
-
-### Run (one-shot)
-
+### 2. Configure Your Environment
+Copy the example environment file, then add your credentials and connect your WorldMonitor API endpoint:
 ```bash
-python main.py --run-once
+cp ~/.hermes/profiles/oculus/.env.EXAMPLE ~/.hermes/profiles/oculus/.env
+# Edit ~/.hermes/profiles/oculus/.env with your API keys:
+# PUBLIC_ACCESS_TOKEN=*** WM_BASE_URL=...
 ```
 
-This prints `PORTFOLIO_SNAPSHOT`, `MACRO_CONTEXT`, and `RUN_ONCE_RESULT` as JSON.
-
----
-
-## Scheduled worker
-
-Oculus can also run as a **long-running scheduled worker**.
-This is useful when you want a continuously refreshed “context cache” in memory for repeated calls (e.g. interactive Hermes sessions, dashboards, or your own downstream pipeline).
-
-### Run the worker
-
+### 3. Launch
+Setup your API provider and your model of choice and launch the agent via the installed alias:
 ```bash
-# Starts an APScheduler loop and refreshes data on an interval
-python main.py
+oculus model
+oculus
 ```
+**Important:** Always run the `oculus model` on a **fresh install** of Hermes Agent to avoid conflicts with API key configurations.
 
-### Configure the schedule
+## Adding Your Own Integrations
+Agent Oculus is built to be modified. To add a new data source or integration:
 
-Intervals live in `config.yaml` under `schedule:`
+1. **Create a Tool:** Add a new script in `tools/` that fetches your desired data.
+2. **Expose to Agent:** Register your tool in the `tools/` module.
+3. **Synthesis:** Update `core/` to include the new signal in the agent's synthesis logic.
 
-```yaml
-schedule:
-  portfolio_snapshot_interval_minutes: 5
-  macro_context_interval_minutes: 15
-  options_refresh_interval_minutes: 15
-```
+Because it is a Hermes profile, you can also install third-party Hermes plugins or MCP servers (`hermes mcp add`) to bring in external functionality without modifying the core repo.
 
-## Repository layout
+## Project Structure
+- `main.py`: CLI entry point and agent scheduler.
+- `core/`: Core synthesis engines, analytics, and output formatting.
+- `tools/`: Reusable integration modules for financial data.
+- `skills/`: Reusable agentic procedures (see `hermes skills list`).
+- `config.yaml`: Runtime defaults and agent behavior settings.
 
-```
-agent-oculus/
-├── main.py                       # Entrypoint (one-shot + scheduled worker)
-├── config.yaml                   # Thresholds + schedule config
-├── core/                         # Clients + analytics + schemas
-├── tools/                        # Atomic async primitives
-├── hermes/
-│   ├── plugin/oculus/            # Hermes plugin toolpack (ships with repo)
-│   ├── skills/oculus/SKILL.md    # Hermes skill (scope + intent mapping)
-│   ├── skins/oculus.yaml         # Optional Hermes skin
-│   └── agent-packs/oculus.yaml   # Hermes /agent pack manifest
-└── scripts/                      # Install helpers
-```
-
----
-
-## Safety model
-
-- `EXECUTION_ENABLED` is expected to remain `false` by default.
-- This repo is optimized for **context generation** and **agent decision support**, not unattended execution.
-
----
-
-## Disclaimer
-
-This project is for **educational and experimental purposes only**. It is **not** financial advice and is not intended for live trading. Any execution pathway must remain explicitly gated.
-
----
-
-## Contributing
-
-PRs welcome. Please:
-- keep tool surfaces minimal (tool schema text is prompt context)
-- don’t weaken execution safety gates
-- add tests for any data-shape contracts you introduce
-
----
+## Safety & Disclaimer
+- **Default State:** Execution is disabled by default (`EXECUTION_ENABLED=false`).
+- **Decision Support:** This project is designed for financial context synthesis and decision support. Do not enable automated trading logic until you have thoroughly tested your strategy within the sandbox.
 
 ## License
-
-MIT (see `LICENSE` if present in this repository). If missing, treat as all-rights-reserved until added.
+MIT

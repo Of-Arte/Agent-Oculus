@@ -1,4 +1,9 @@
-version: 0.1.0
+version: 0.2.0
+
+model:
+  provider: gemini
+  default: gemini-flash-latest
+  base_url: "https://generativelanguage.googleapis.com/v1beta"
 
 public:
   base_url: "https://api.public.com"
@@ -22,14 +27,9 @@ worldmonitor:
 features:
   read_only: true
   execution_enabled: false
-  athena_output_enabled: true
 
 schedule:
-  portfolio_snapshot_interval_minutes: 5
-  options_refresh_interval_minutes: 15
-  macro_context_interval_minutes: 15
-  etf_flows_interval_minutes: 15
-  supply_chain_interval_minutes: 5
+  context_signals_interval_minutes: 15
 
 thresholds:
   etf_flow_reversal_threshold: 100000000
