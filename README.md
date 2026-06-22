@@ -10,26 +10,40 @@ It focuses on fast, readable context signals from:
 Install Oculus as a Hermes profile:
 
 ```bash
-hermes profile install . --alias oculus
+hermes profile install . --name oculus --alias
 ```
 
-Launch it through Hermes:
+Then launch the installed profile through Hermes:
 
 ```bash
 hermes -p oculus
 ```
 
+If you enabled the alias, you can also start it with `oculus`.
+
+For a one-shot smoke test, run the profile through Hermes and use the same command flow you would in a real session.
+
+For test/dev extras while developing the repo itself:
+
+```bash
+python -m pip install -e '.[dev]'
+```
+
 ## First-time Hermes setup or sandbox smoke test
 
-If you're setting up Hermes for the first time, use Hermes' built-in setup and model selection first:
+If you're setting up Hermes for the first time, use Hermes' built-in setup first:
 
 ```bash
 hermes setup
 hermes doctor
-hermes model
 ```
 
-After that, follow the quick start above.
+Then install Oculus as a profile and run it through Hermes:
+
+```bash
+hermes profile install . --name oculus --alias
+hermes -p oculus
+```
 
 Notes:
 - When Oculus is installed as a Hermes profile, the Oculus profile model/provider defaults are the canonical path.
