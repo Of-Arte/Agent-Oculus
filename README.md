@@ -6,24 +6,24 @@ It focuses on fast, readable context signals from:
 - WorldMonitor macro / regime data
 - derived signals and alerts for downstream agents
 
-The project is now centered on a simple runtime first.
-No skin layer. No profile-theme setup. Just install and run.
+The project is now centered on Hermes profile install + profile launch.
+No skin layer. No theme setup. Use Hermes' normal profile flow.
 
 ## Quick start
 
-Install this repo as a Hermes profile:
+Install Oculus as a Hermes profile:
 
 ```bash
 hermes profile install . --alias oculus
 ```
 
-Then run it through Hermes using the installed profile/alias, not as a standalone Python script:
+Launch it through Hermes:
 
 ```bash
 hermes -p oculus
 ```
 
-If you want a one-shot smoke test after install, use Hermes' normal command execution path from that profile and call the agent the same way you would in a real session.
+For a one-shot smoke test, open that profile in Hermes and use the same command flow you would in a real session.
 
 For test/dev extras while developing the repo itself:
 
@@ -41,12 +41,7 @@ hermes doctor
 hermes model
 ```
 
-Then install Oculus as a profile and run it through Hermes:
-
-```bash
-hermes profile install . --alias oculus
-hermes -p oculus
-```
+After that, follow the quick start above.
 
 Notes:
 - If you're testing inside a sandbox shell, prefer the existing Hermes command flow above instead of hand-editing the shell environment.
