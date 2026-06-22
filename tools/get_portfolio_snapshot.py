@@ -33,7 +33,7 @@ async def get_portfolio_snapshot(config_path: str | Path = 'config.yaml') -> dic
     if _CACHE['value'] is not None and (time.time() - _CACHE['timestamp']) < 300:
         return _CACHE['value']
     config = load_config(config_path)
-    public_client = PublicApiClient(config['public'])
+    public_client = PublicApiClient(config.get('public', {}))
     wm_client = WorldMonitorClient()
     try:
         context = await build_finance_context(

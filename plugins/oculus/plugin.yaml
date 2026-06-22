@@ -1,0 +1,4 @@
+name: oculus
+version: 0.2.0
+description: "Deprecated Oculus toolpack stub (skin/plugin integration removed)"
+provides_tools: []

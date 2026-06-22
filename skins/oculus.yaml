@@ -1,0 +1,11 @@
+# Deprecated Oculus skin stub
+# The Hermes CLI skin integration has been removed from the active setup.
+name: oculus-deprecated
+description: "Deprecated Oculus skin stub"
+colors:
+  banner_primary: "#666666"
+  banner_dim: "#777777"
+  accent: "#777777"
+  tool_prefix: "#777777"
+  warning: "#777777"
+  error: "#777777"
