@@ -2,7 +2,7 @@
 
 Agent Oculus is an open-source financial context engine designed to provide fast, readable, and actionable market signals. It acts as a modular synthesis layer for financial data, enabling retail traders to monitor portfolios, track macro regimes, and build custom investment workflows using Hermes Agent.
 
-## Capabilities
+## Core Capabilities
 
 Agent Oculus provides structured financial signals to inform decision-making:
 
@@ -12,7 +12,7 @@ Agent Oculus provides structured financial signals to inform decision-making:
 - **Systematic Verdicts:** Synthesizes portfolio and macro data into structured JSON signals, offering regime classifications (e.g., TRANSITIONAL, HIGH_VOLATILITY) and strategy recommendations.
 - **Safety-First Execution:** Designed for decision support; automated trading is strictly opt-in and disabled by default.
 
-*Note: Oculus utilizes a fallback system that maintains visibility even when primary APIs are unavailable, ensuring the agent remains in a functional "read-only" state.*
+*Note: Oculus utilizes a fallback system that maintains visibility even when primary APIs are unavailable.*
 
 ## Quick Start
 
