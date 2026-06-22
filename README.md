@@ -19,14 +19,6 @@ Launch it through Hermes:
 hermes -p oculus
 ```
 
-For a one-shot smoke test, open that profile in Hermes and use the same command flow you would in a real session.
-
-For test/dev extras while developing the repo itself:
-
-```bash
-python -m pip install -e '.[dev]'
-```
-
 ## First-time Hermes setup or sandbox smoke test
 
 If you're setting up Hermes for the first time, use Hermes' built-in setup and model selection first:
