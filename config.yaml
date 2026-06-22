@@ -1,5 +1,10 @@
 version: 0.2.0
 
+model:
+  provider: gemini
+  default: gemini-flash-latest
+  base_url: "https://generativelanguage.googleapis.com/v1beta"
+
 public:
   base_url: "https://api.public.com"
   timeout_seconds: 15
