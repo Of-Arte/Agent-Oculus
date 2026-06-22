@@ -14,28 +14,22 @@ hermes setup
 hermes doctor
 ```
 
-2. Set the Hermes model/provider you want Oculus to use:
-
-```bash
-hermes model
-```
-
-3. Install Oculus as a Hermes profile and create the wrapper:
+2. Install Oculus as a Hermes profile and create the wrapper:
 
 ```bash
 hermes profile install . --name oculus
 hermes profile alias oculus
 ```
 
-4. Start it:
+3. Start it:
 
 ```bash
 oculus
 ```
 
 Notes:
-- If the profile comes up as `unknown`, rerun `hermes model` and save the desired provider/model first.
-- If your normal Hermes default is Gemini Flash on AI Studio, set that before installing or relaunching Oculus.
+- The profile ships with a default Gemini Flash model on Google AI Studio.
+- If you want to change the profile model later, do it with `hermes model` after install.
 - In a sandbox, use the normal Hermes profile flow instead of editing shell state by hand.
 
 ## Smoke test
