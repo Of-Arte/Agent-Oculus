@@ -14,16 +14,21 @@ This repo is intentionally **execution-safe by default**: it focuses on **contex
 ```bash
 git clone https://github.com/Of-Arte/agent-oculus.git
 cd agent-oculus
+python -m pip install -e '.[dev]'
 ./scripts/install_agent_pack.sh
 ```
 
-That installer will (when Hermes is installed) set everything up for you:
-- Skill → `~/.hermes/skills/oculus/`
-- Plugin → `~/.hermes/plugins/oculus/`
-- Agent pack manifest → `~/.hermes/agent-packs/oculus.yaml`
+That installer will (when Hermes is installed) set everything up for you in the
+`oculus` profile home:
+- Skill → `~/.hermes/profiles/oculus/skills/oculus/`
+- Plugin → `~/.hermes/profiles/oculus/plugins/oculus/`
+- Agent pack manifest → `~/.hermes/profiles/oculus/agent-packs/oculus.yaml`
 - Profile → creates `oculus` profile if missing
 - Profile env → sets `OCULUS_WORKDIR` automatically
-- Optional UI polish → installs `~/.hermes/skins/oculus.yaml`
+- Optional UI polish → installs `~/.hermes/profiles/oculus/skins/oculus.yaml`
+
+If Hermes is not installed yet, the scripts fall back to the default
+`~/.hermes` home so a later Hermes install still picks them up.
 
 ### Run
 
@@ -36,7 +41,7 @@ If you don’t see the tools:
 - `/tools` → enable toolset `oculus`
 
 Optional UI polish:
-- `hermes config set display.skin oculus`
+- `oculus config set display.skin oculus`
 
 ### What Oculus adds to Hermes
 
@@ -81,6 +86,8 @@ Optional:
 ### Run (one-shot)
 
 ```bash
+oculus --run-once
+# or
 python main.py --run-once
 ```
 
