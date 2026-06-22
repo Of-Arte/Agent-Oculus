@@ -24,8 +24,7 @@ Notes for fresh installs:
 - If Hermes itself is not set up yet, run `hermes setup` and `hermes doctor` first.
 - If you want the profile alias to work, keep `--alias` in the install command.
 - When Oculus is installed as a Hermes profile, the Oculus profile model/provider defaults are the canonical path.
-- In a sandbox, prefer the normal Hermes profile flow rather than editing the shell environment by hand.
-
+  
 ## Smoke test
 
 For a quick check after install, open the profile and run a one-shot prompt from the normal Hermes command flow.
