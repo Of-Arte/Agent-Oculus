@@ -1,144 +1,66 @@
-# Agent Oculus (agent-oculus)
+# Agent Oculus
 
-Agent Oculus is a Hermes-native finance context worker.
-It pulls:
-- portfolio / account context from Public.com
-- macro / regime context from WorldMonitor
-- derived signals suitable for downstream agent decisions
+Agent Oculus is a small finance context worker.
+It focuses on fast, readable context signals from:
+- Public.com portfolio / market data
+- WorldMonitor macro / regime data
+- derived signals and alerts for downstream agents
 
-This repo is now structured as a Hermes profile distribution first.
-That means the canonical install path is Hermes-native, not shell copy scripts.
+The project is now centered on a simple runtime first.
+No skin layer. No profile-theme setup. Just install and run.
 
----
-
-## Hermes-native install
-
-Use this when you want the project to show up as a Hermes profile with its own
-assets, alias, skin, and plugin/tool surface.
+## Quick start
 
 ```bash
-git clone https://github.com/Of-Arte/agent-oculus.git
-cd agent-oculus
-hermes profile install . --alias
-```
-
-What that gives you:
-- a dedicated `oculus` Hermes profile
-- an `oculus` shell command alias managed by Hermes
-- the Oculus skill
-- the Oculus plugin/toolpack
-- the Oculus skin
-- the default profile config wired for the Oculus skin and plugin
-
-After install:
-
-```bash
-oculus
-```
-
-Inside the profile, use the built-in tools and commands Hermes exposes.
-The plugin is named `oculus` and the CLI skin is `oculus`.
-
-If you want to install from a remote repo instead of a local checkout, use the same command with the repo URL.
-
-### Fresh install smoke test
-
-Use this to verify the PR on a clean Hermes setup without touching your real profile:
-
-```bash
-git clone https://github.com/Of-Arte/agent-oculus.git
-cd agent-oculus
-
-git checkout feat/hermes-native-profile-distribution
-
-export HERMES_HOME="$(mktemp -d)"
-hermes profile install "$PWD" --name oculus-fresh --alias -y
-
-HERMES_HOME="$HERMES_HOME" oculus-fresh config path
-HERMES_HOME="$HERMES_HOME" oculus-fresh plugins list --plain | grep oculus
-
-test -f "$HERMES_HOME/profiles/oculus-fresh/SOUL.md"
-test -f "$HERMES_HOME/profiles/oculus-fresh/config.yaml"
-test -f "$HERMES_HOME/profiles/oculus-fresh/plugins/oculus/plugin.yaml"
-test -f "$HERMES_HOME/profiles/oculus-fresh/skills/oculus/SKILL.md"
-test -f "$HERMES_HOME/profiles/oculus-fresh/skins/oculus.yaml"
-```
-
-If that all passes, the profile distribution is wired correctly on a fresh install.
-
----
-
-## What’s included
-
-Hermes profile assets:
-- `SOUL.md` — profile identity / scope
-- `config.yaml` — defaults, including skin + plugin enablement
-- `skills/oculus/SKILL.md` — scope lock / intent mapping
-- `plugins/oculus/` — Hermes toolpack
-- `skins/oculus.yaml` — CLI skin/theme
-
-Standalone runtime:
-- `main.py` — one-shot or scheduled context worker
-- `core/` — clients, analytics, synthesis, output formatting
-- `tools/` — standalone Python entrypoints used by `main.py`
-
----
-
-## Standalone Python install
-
-Use this if you want to run the worker directly outside Hermes.
-
-### Install
-
-```bash
-python -m pip install -e '.[dev]'
-```
-
-### Run once
-
-```bash
+python -m pip install -e .
 python main.py --run-once
 ```
 
-### Run the scheduler
+If you want the continuous signal loop instead:
 
 ```bash
 python main.py
 ```
 
-The one-shot mode prints JSON blocks for:
-- `PORTFOLIO_SNAPSHOT`
-- `MACRO_CONTEXT`
-- `RUN_ONCE_RESULT`
+For test/dev extras:
 
----
+```bash
+python -m pip install -e '.[dev]'
+```
 
-## Configuration
+## What you need
 
-Hermes profile configuration lives in `config.yaml` / `.env` under the profile home.
-The project expects:
 - `PUBLIC_ACCESS_TOKEN`
 - `WM_BASE_URL`
 
-Execution stays off by default.
+Optional:
+- `WORLDMONITOR_API_KEY`
+- `EXECUTION_ENABLED=false` unless you explicitly want order execution logic enabled
 
----
+## What it prints
+
+The one-shot mode prints a JSON config summary and a `CONTEXT_SIGNALS` block
+with the current regime, signal list, and alerts.
+
+## Project layout
+
+- `main.py` — CLI runtime and scheduler
+- `core/` — clients, analytics, synthesis, output formatting
+- `tools/` — reusable entrypoints for portfolio, macro, and signals
+- `SOUL.md` — repo mission / operating rules
+- `config.yaml` — runtime defaults
 
 ## Safety model
 
 - No live trading by default
-- `EXECUTION_ENABLED` must remain `false` unless the user explicitly changes it
+- `EXECUTION_ENABLED` must stay `false` unless you explicitly change it
 - The repo is designed for context generation and decision support, not unattended execution
-
----
 
 ## Tests
 
 ```bash
 python -m pytest
 ```
-
----
 
 ## License
 

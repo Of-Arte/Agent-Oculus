@@ -1,28 +1,11 @@
-# Oculus skin for Hermes CLI
-# Activate with: oculus config set display.skin oculus
-
-name: oculus
-description: "Oculus: dark, finance-themed skin"
-
+# Deprecated Oculus skin stub
+# The Hermes CLI skin integration has been removed from the active setup.
+name: oculus-deprecated
+description: "Deprecated Oculus skin stub"
 colors:
-  banner_primary: "#7DD3FC"
-  banner_dim: "#A3A3A3"
-  accent: "#22C55E"
-  tool_prefix: "#38BDF8"
-  warning: "#FBBF24"
-  error: "#F87171"
-
-branding:
-  title: "Oculus"
-  subtitle: "Portfolio + Macro Context"
-
-spinner:
-  style: "kaomoji"
-  faces:
-    - "(⌐■_■)"
-    - "(•_•)"
-    - "(¬‿¬)"
-  verbs:
-    - "scanning"
-    - "synthesizing"
-    - "watching"
+  banner_primary: "#666666"
+  banner_dim: "#777777"
+  accent: "#777777"
+  tool_prefix: "#777777"
+  warning: "#777777"
+  error: "#777777"

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "agent-oculus-v1"
 version = "0.1.0"
-description = "Read-first finance worker for Hermes using Public.com and WorldMonitor"
+description = "Fast finance context signals for Hermes and standalone CLI use"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -29,7 +29,7 @@ dev = [
 py-modules = ["main"]
 
 [tool.setuptools.packages.find]
-include = ["core*", "hermes*", "plugins*", "tools*"]
+include = ["core*", "tools*"]
 exclude = ["tests*"]
 
 [tool.pytest.ini_options]

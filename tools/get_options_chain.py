@@ -16,7 +16,7 @@ def load_config(config_path: str | Path = 'config.yaml') -> dict[str, Any]:
 
 async def get_options_chain(symbol: str, expiration: str | None = None, config_path: str | Path = 'config.yaml') -> dict:
     config = load_config(config_path)
-    client = PublicApiClient(config['public'])
+    client = PublicApiClient(config.get('public', {}))
     try:
         chain = await PublicOptionsService(client).get_normalized_chain(symbol, expiration)
         return chain.to_dict()

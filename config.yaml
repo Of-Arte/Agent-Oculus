@@ -22,21 +22,9 @@ worldmonitor:
 features:
   read_only: true
   execution_enabled: false
-  athena_output_enabled: true
-
-display:
-  skin: oculus
-
-plugins:
-  enabled:
-    - oculus
 
 schedule:
-  portfolio_snapshot_interval_minutes: 5
-  options_refresh_interval_minutes: 15
-  macro_context_interval_minutes: 15
-  etf_flows_interval_minutes: 15
-  supply_chain_interval_minutes: 5
+  context_signals_interval_minutes: 15
 
 thresholds:
   etf_flow_reversal_threshold: 100000000
