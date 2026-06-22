@@ -1,4 +1,4 @@
-version: 0.1.0
+version: 0.2.0
 
 public:
   base_url: "https://api.public.com"
@@ -23,6 +23,13 @@ features:
   read_only: true
   execution_enabled: false
   athena_output_enabled: true
+
+display:
+  skin: oculus
+
+plugins:
+  enabled:
+    - oculus
 
 schedule:
   portfolio_snapshot_interval_minutes: 5

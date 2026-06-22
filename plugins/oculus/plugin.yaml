@@ -1,0 +1,6 @@
+name: oculus
+version: 0.2.0
+description: "Agent Oculus toolpack (low-bloat): healthcheck + get_context (Public.com + WorldMonitor)"
+provides_tools:
+  - oculus_healthcheck
+  - oculus_get_context

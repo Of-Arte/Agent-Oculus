@@ -8,7 +8,6 @@ version = "0.1.0"
 description = "Read-first finance worker for Hermes using Public.com and WorldMonitor"
 readme = "README.md"
 requires-python = ">=3.11"
-scripts = { oculus = "main:main" }
 dependencies = [
   "publicdotcom-py>=0.1.0",
   "httpx>=0.28,<1",
@@ -30,7 +29,7 @@ dev = [
 py-modules = ["main"]
 
 [tool.setuptools.packages.find]
-include = ["core*", "hermes*", "tools*"]
+include = ["core*", "hermes*", "plugins*", "tools*"]
 exclude = ["tests*"]
 
 [tool.pytest.ini_options]

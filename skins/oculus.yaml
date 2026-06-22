@@ -1,0 +1,28 @@
+# Oculus skin for Hermes CLI
+# Activate with: oculus config set display.skin oculus
+
+name: oculus
+description: "Oculus: dark, finance-themed skin"
+
+colors:
+  banner_primary: "#7DD3FC"
+  banner_dim: "#A3A3A3"
+  accent: "#22C55E"
+  tool_prefix: "#38BDF8"
+  warning: "#FBBF24"
+  error: "#F87171"
+
+branding:
+  title: "Oculus"
+  subtitle: "Portfolio + Macro Context"
+
+spinner:
+  style: "kaomoji"
+  faces:
+    - "(⌐■_■)"
+    - "(•_•)"
+    - "(¬‿¬)"
+  verbs:
+    - "scanning"
+    - "synthesizing"
+    - "watching"
