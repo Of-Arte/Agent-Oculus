@@ -1,6 +1,6 @@
 name: oculus
 version: 0.2.0
-description: "Agent Oculus: fast finance context signals with a minimal runtime"
+description: "Open-source financial context engine and synthesis layer for Hermes Agent"
 hermes_requires: ">=0.17.0"
 author: "Of-Arte"
 license: "MIT"
