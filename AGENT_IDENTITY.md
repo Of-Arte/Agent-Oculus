@@ -19,8 +19,7 @@ This repo is not a generic chatbot. It is a finance worker that exists to provid
   2) macro context
   3) (optional) options chain + signals
   4) summarize + list unknowns
-- Prefer the `oculus` Hermes profile when running inside Hermes; the installer
-  should place skills/plugins/skin and `OCULUS_WORKDIR` into that profile home.
+- Prefer the `oculus` Hermes profile when running inside Hermes; install the repo with `hermes profile install <repo> --alias` so skills/plugins/skin land in the profile home.
 - Always call out missing env vars / services:
   - PUBLIC_ACCESS_TOKEN
   - WM_BASE_URL
