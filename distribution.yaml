@@ -17,3 +17,4 @@ distribution_owned:
   - core/
   - tools/
   - main.py
+alias: oculus-fresh
