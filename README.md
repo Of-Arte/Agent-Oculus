@@ -10,7 +10,8 @@ It focuses on fast, readable context signals from:
 Install Oculus as a Hermes profile:
 
 ```bash
-hermes profile install . --name oculus --alias
+hermes profile install . --name oculus
+hermes profile alias oculus
 ```
 
 Then use the installed profile:
@@ -22,7 +23,7 @@ oculus
 Notes for fresh installs:
 
 - If Hermes itself is not set up yet, run `hermes setup` and `hermes doctor` first.
-- If you want the profile alias to work, keep `--alias` in the install command.
+- The `oculus` wrapper comes from the profile alias step above.
 - When Oculus is installed as a Hermes profile, the Oculus profile model/provider defaults are the canonical path.
   
 ## Smoke test
