@@ -41,6 +41,31 @@ The plugin is named `oculus` and the CLI skin is `oculus`.
 
 If you want to install from a remote repo instead of a local checkout, use the same command with the repo URL.
 
+### Fresh install smoke test
+
+Use this to verify the PR on a clean Hermes setup without touching your real profile:
+
+```bash
+git clone https://github.com/Of-Arte/agent-oculus.git
+cd agent-oculus
+
+git checkout feat/hermes-native-profile-distribution
+
+export HERMES_HOME="$(mktemp -d)"
+hermes profile install "$PWD" --name oculus-fresh --alias -y
+
+HERMES_HOME="$HERMES_HOME" oculus-fresh config path
+HERMES_HOME="$HERMES_HOME" oculus-fresh plugins list --plain | grep oculus
+
+test -f "$HERMES_HOME/profiles/oculus-fresh/SOUL.md"
+test -f "$HERMES_HOME/profiles/oculus-fresh/config.yaml"
+test -f "$HERMES_HOME/profiles/oculus-fresh/plugins/oculus/plugin.yaml"
+test -f "$HERMES_HOME/profiles/oculus-fresh/skills/oculus/SKILL.md"
+test -f "$HERMES_HOME/profiles/oculus-fresh/skins/oculus.yaml"
+```
+
+If that all passes, the profile distribution is wired correctly on a fresh install.
+
 ---
 
 ## What’s included
