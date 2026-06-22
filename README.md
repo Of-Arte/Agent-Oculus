@@ -7,28 +7,40 @@ It focuses on fast, readable context signals from:
 
 ## Install guide
 
-Install Oculus as a Hermes profile:
+1. Run Hermes setup if needed:
+
+```bash
+hermes setup
+hermes doctor
+```
+
+2. Set the Hermes model/provider you want Oculus to use:
+
+```bash
+hermes model
+```
+
+3. Install Oculus as a Hermes profile and create the wrapper:
 
 ```bash
 hermes profile install . --name oculus
 hermes profile alias oculus
 ```
 
-Then use the installed profile:
+4. Start it:
 
 ```bash
 oculus
 ```
 
-Notes for fresh installs:
+Notes:
+- If the profile comes up as `unknown`, rerun `hermes model` and save the desired provider/model first.
+- If your normal Hermes default is Gemini Flash on AI Studio, set that before installing or relaunching Oculus.
+- In a sandbox, use the normal Hermes profile flow instead of editing shell state by hand.
 
-- If Hermes itself is not set up yet, run `hermes setup` and `hermes doctor` first.
-- The `oculus` wrapper comes from the profile alias step above.
-- When Oculus is installed as a Hermes profile, the Oculus profile model/provider defaults are the canonical path.
-  
 ## Smoke test
 
-For a quick check after install, open the profile and run a one-shot prompt from the normal Hermes command flow.
+After install, start `oculus` and send one short prompt to confirm the profile loads the expected model/provider.
 
 ## What you need
 
