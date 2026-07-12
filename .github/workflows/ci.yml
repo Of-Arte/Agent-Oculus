@@ -1,0 +1,55 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  # Allow manual trigger for deployment workflow
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Test Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: |
+          uv pip install -e .[dev]
+
+      - name: Run Pytest
+        run: |
+          uv run pytest
+
+  deploy:
+    name: Deploy Application
+    needs: test
+    runs-on: ubuntu-latest
+    # This environment can be configured in GitHub to require manual approval
+    environment: production
+    # Only run deploy on push to main/master, or when manually dispatched
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'))
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Confirm Deployment
+        run: |
+          echo "Deployment step initiated. Awaiting confirmation and deployment scripts..."
+          # Insert actual deployment commands here (e.g., publish to PyPI, deploy to hosting)
