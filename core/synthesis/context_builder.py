@@ -27,6 +27,14 @@ _IV_ENGINE = IVRankEngine(lookback_days=252)
 
 
 def _parse_dte(expiration: str | None) -> int:
+    """Parses an expiration date string and calculates days to expiration.
+
+    Args:
+        expiration (str | None): The expiration date as 'YYYY-MM-DD'.
+
+    Returns:
+        int: The number of days until expiration (0 if parsing fails or date is past).
+    """
     if not expiration:
         return 0
     try:
@@ -42,12 +50,17 @@ def _parse_dte(expiration: str | None) -> int:
 
 
 def _estimate_atm_iv(*, quote: Quote | None, chain) -> float | None:
-    """Estimate current ATM IV from a normalized options chain.
+    """Estimates current ATM Implied Volatility from a normalized options chain.
 
-    Prefer:
-    - nearest-strike contract IV vs underlying last price
-    Fallback:
-    - chain.iv_metrics.implied_volatility (avg)
+    Preferentially uses the nearest-strike contract IV relative to the underlying 
+    last price. Falls back to chain-level IV metrics if contract specifics are missing.
+
+    Args:
+        quote (Quote | None): The quote for the underlying asset.
+        chain: The options chain containing contracts or iv_metrics.
+
+    Returns:
+        float | None: The estimated ATM implied volatility, or None if unavailable.
     """
 
     underlying = None
@@ -155,6 +168,27 @@ async def build_finance_context(
     wm_trade_policy_service: WorldMonitorTradePolicyService,
     previous_regime: str | None = None,
 ) -> FinanceContext:
+    """Aggregates and builds a comprehensive FinanceContext.
+
+    Asynchronously fetches data from broker services (account, positions, options, quotes) 
+    and WorldMonitor endpoints (macro, sentiment, supply chain, stablecoins). Synthesizes 
+    the data to detect regimes, evaluate options IV rank, normalize signals, and generate alerts.
+
+    Args:
+        public_account_service (PublicAccountService): Service for account operations.
+        public_market_data_service (PublicMarketDataService): Service for market quotes.
+        public_options_service (PublicOptionsService): Service for options chains.
+        wm_market_radar_service (WorldMonitorMarketRadarService): Service for market radar.
+        wm_stablecoin_service (WorldMonitorStablecoinService): Service for stablecoin status.
+        wm_etf_flow_service (WorldMonitorBtcEtfFlowService): Service for BTC ETF flows.
+        wm_macro_service (WorldMonitorMacroService): Service for macro-level indicators.
+        wm_supply_chain_service (WorldMonitorSupplyChainService): Service for supply chain chokepoints.
+        wm_trade_policy_service (WorldMonitorTradePolicyService): Service for trade restrictions.
+        previous_regime (str | None, optional): The previously detected regime for context state tracking.
+
+    Returns:
+        FinanceContext: A consolidated snapshot containing all aggregated signals, alerts, and market data.
+    """
     account = None
     positions = []
     try:

@@ -22,6 +22,15 @@ class WMRateLimitError(WMError):
 
 
 class WorldMonitorClient:
+    """An asynchronous HTTP client for the WorldMonitor API.
+
+    Handles authentication, rate limits with exponential backoff, and 
+    common API errors.
+
+    Attributes:
+        base_url (str): The base URL for the WorldMonitor API.
+        api_key (str): The API key for authentication.
+    """
     RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 
     def __init__(
@@ -51,6 +60,21 @@ class WorldMonitorClient:
         return headers
 
     async def request(self, method: str, path: str, *, params: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Makes an HTTP request to the WorldMonitor API.
+
+        Args:
+            method (str): The HTTP method (e.g., 'GET', 'POST').
+            path (str): The endpoint path relative to the base URL.
+            params (dict[str, Any] | None, optional): Query parameters. Defaults to None.
+
+        Returns:
+            dict[str, Any]: The JSON response payload.
+
+        Raises:
+            WMAuthError: If authentication fails (401, 403).
+            WMRateLimitError: If rate limit is exceeded after retries (429).
+            WMError: For other API or network errors.
+        """
         if not self.base_url:
             raise WMError('WorldMonitor is unavailable: WM_BASE_URL is not configured.')
         url = f'{self.base_url}/{path.lstrip("/")}'

@@ -55,6 +55,128 @@ Because it is a Hermes profile, you can also install third-party Hermes plugins 
 - `skills/`: Reusable agentic procedures (see `hermes skills list`).
 - `config.yaml`: Runtime defaults and agent behavior settings.
 
+## Architecture & Data Flow
+
+The following sequence and object relationship diagram illustrates how data flows from the agent triggers, through external APIs, into the synthesis engine, and finally back to the agent as actionable intelligence.
+
+```mermaid
+flowchart TD
+    %% Triggers
+    Agent["Hermes Agent / CLI"] -->|"Invokes Tools"| ToolSignals["tools/get_signals.py"]
+    Agent -->|"Invokes Tools"| ToolMacro["tools/get_macro_context.py\ntools/get_portfolio_snapshot.py\netc."]
+
+    %% Context Builder
+    ToolSignals -->|"Initiates Build"| ContextBuilder["core/synthesis/context_builder.py"]
+
+    %% API Clients
+    subgraph External APIs
+        WMClient["WorldMonitorClient (Macro/Sentiment)"]
+        BrokerClient["PublicApiClient (Broker Data)"]
+    end
+
+    ToolMacro -->|"Direct Fetch"| WMClient
+    ToolMacro -->|"Direct Fetch"| BrokerClient
+
+    ContextBuilder -->|"Async Fetch"| WMClient
+    ContextBuilder -->|"Async Fetch"| BrokerClient
+
+    %% Synthesis Phase
+    subgraph Synthesis Engine
+        ContextBuilder -->|"1. Compute Volatility"| IVEngine["core/analytics/iv_rank.py"]
+        ContextBuilder -->|"2. Detect Regime"| RegimeDetector["core/synthesis/regime_detector.py"]
+        ContextBuilder -->|"3. Build Signals"| SignalNormalizer["core/synthesis/alert_engine.py"]
+        ContextBuilder -->|"4. Evaluate Alerts"| AlertEngine["core/synthesis/alert_engine.py"]
+    end
+
+    %% Output
+    IVEngine -.->|"Metrics"| FinanceContext["FinanceContext (core/schemas.py)"]
+    RegimeDetector -.->|"RegimeResult"| FinanceContext
+    SignalNormalizer -.->|"NormalizedSignals"| FinanceContext
+    AlertEngine -.->|"Alerts"| FinanceContext
+
+    FinanceContext -->|"Returned to Agent"| ToolSignals
+```
+
+### Class Relationships & Core Objects
+
+The following class diagram outlines the design of the core services, API clients, and the unified `FinanceContext` data structure:
+
+```mermaid
+classDiagram
+    direction LR
+
+    class WorldMonitorClient {
+        +base_url : str
+        +api_key : str
+        +request(method, path, params) dict
+        +close()
+    }
+
+    class PublicApiClient {
+        +base_url : str
+        +access_token : str
+        +request(method, path, params) dict
+        +close()
+    }
+
+    class WorldMonitorMacroService {
+        -client : WorldMonitorClient
+        +get_macro_signals() MacroSignals
+        +get_bis_policy_rates() list
+        +get_energy_prices() EnergyPrices
+    }
+
+    class WorldMonitorMarketRadarService {
+        -client : WorldMonitorClient
+        +get_market_radar_verdict() MarketRadarVerdict
+        +get_fear_greed() FearGreedIndex
+    }
+
+    class WorldMonitorStablecoinService {
+        -client : WorldMonitorClient
+        +list_stablecoin_markets() list
+    }
+
+    class PublicAccountService {
+        -client : PublicApiClient
+        +get_account_snapshot() AccountSnapshot
+        +list_positions() list
+    }
+
+    class PublicOptionsService {
+        -client : PublicApiClient
+        +get_normalized_chain(symbol) OptionChain
+    }
+
+    class PublicMarketDataService {
+        -client : PublicApiClient
+        +get_quotes(symbols) dict
+    }
+
+    class FinanceContext {
+        +account : AccountSnapshot
+        +positions : list
+        +quotes : dict
+        +options_chains : dict
+        +macro : MacroSignals
+        +regime : str
+        +regime_flags : list
+        +signals : list
+        +alerts : list
+    }
+
+    WorldMonitorMacroService --> WorldMonitorClient : Uses
+    WorldMonitorMarketRadarService --> WorldMonitorClient : Uses
+    WorldMonitorStablecoinService --> WorldMonitorClient : Uses
+
+    PublicAccountService --> PublicApiClient : Uses
+    PublicOptionsService --> PublicApiClient : Uses
+    PublicMarketDataService --> PublicApiClient : Uses
+
+    FinanceContext ..> WorldMonitorMacroService : Aggregates
+    FinanceContext ..> PublicAccountService : Aggregates
+```
+
 ## Safety & Disclaimer
 - **Default State:** Execution is disabled by default (`EXECUTION_ENABLED=false`).
 - **Decision Support:** This project is designed for financial context synthesis and decision support. Do not enable automated trading logic until you have thoroughly tested your strategy within the sandbox.
