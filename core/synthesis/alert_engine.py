@@ -7,6 +7,18 @@ ETF_FLOW_REVERSAL_THRESHOLD = 100_000_000.0
 
 
 def build_normalized_signals(context: FinanceContext) -> list[NormalizedSignal]:
+    """Builds a list of normalized signals from the given finance context.
+
+    Extracts relevant data points (such as market radar verdict, fear and greed index,
+    stablecoin status, chokepoint disruptions, and options IV rank) and standardizes them
+    into a unified signal format for easier analysis.
+
+    Args:
+        context (FinanceContext): The aggregated financial and macroeconomic context.
+
+    Returns:
+        list[NormalizedSignal]: A list of signals normalized to a standard schema.
+    """
     signals: list[NormalizedSignal] = []
     if context.market_radar is not None:
         signals.append(
@@ -88,6 +100,18 @@ def build_normalized_signals(context: FinanceContext) -> list[NormalizedSignal]:
 
 
 def evaluate_alerts(context: FinanceContext) -> list[Alert]:
+    """Evaluates the finance context to generate actionable alerts.
+
+    Scans the context for critical thresholds, such as elevated IV ranks, 
+    stablecoin depegs, severe supply chain chokepoint disruptions, 
+    regime changes, and significant ETF outflow reversals. 
+
+    Args:
+        context (FinanceContext): The aggregated financial and macroeconomic context.
+
+    Returns:
+        list[Alert]: A list of generated alerts with appropriate severities.
+    """
     alerts: list[Alert] = []
 
     for ticker, chain in context.options_chains.items():
