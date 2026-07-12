@@ -62,8 +62,7 @@ The following sequence and object relationship diagram illustrates how data flow
 ```mermaid
 flowchart TD
     %% Triggers
-    Agent["Hermes Agent / CLI"] -->|"Invokes Tools"| ToolSignals["tools/get_signals.py"]
-    Agent -->|"Invokes Tools"| ToolMacro["tools/get_macro_context.py\ntools/get_portfolio_snapshot.py\netc."]
+    Agent["Hermes Agent / CLI"] -->|"Invokes Tool"| ToolSignals["tools/get_signals.py"]
 
     %% Context Builder
     ToolSignals -->|"Initiates Build"| ContextBuilder["core/synthesis/context_builder.py"]
@@ -73,9 +72,6 @@ flowchart TD
         WMClient["WorldMonitorClient (Macro/Sentiment)"]
         BrokerClient["PublicApiClient (Broker Data)"]
     end
-
-    ToolMacro -->|"Direct Fetch"| WMClient
-    ToolMacro -->|"Direct Fetch"| BrokerClient
 
     ContextBuilder -->|"Async Fetch"| WMClient
     ContextBuilder -->|"Async Fetch"| BrokerClient
