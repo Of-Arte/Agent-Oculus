@@ -31,6 +31,18 @@ async def _guard(coro):
 
 
 async def get_macro_context(config_path: str | Path = 'config.yaml') -> dict:
+    """Fetches the current macroeconomic context asynchronously.
+
+    Utilizes the WorldMonitor client to aggregate various macro signals 
+    such as market radar, stablecoins, ETF flows, and supply chain status.
+    Results are cached for 15 minutes to reduce API calls.
+
+    Args:
+        config_path (str | Path, optional): Path to the configuration file. Defaults to 'config.yaml'.
+
+    Returns:
+        dict: A dictionary containing the aggregated macro context.
+    """
     if _CACHE['value'] is not None and (time.time() - _CACHE['timestamp']) < 900:
         return _CACHE['value']
     _ = load_config(config_path)
@@ -70,4 +82,12 @@ async def get_macro_context(config_path: str | Path = 'config.yaml') -> dict:
 
 
 def run(config_path: str | Path = 'config.yaml') -> dict:
+    """Synchronous entrypoint to fetch the macro context.
+
+    Args:
+        config_path (str | Path, optional): Path to the configuration file. Defaults to 'config.yaml'.
+
+    Returns:
+        dict: A dictionary containing the aggregated macro context.
+    """
     return asyncio.run(get_macro_context(config_path))
