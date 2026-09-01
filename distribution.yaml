@@ -5,8 +5,8 @@ hermes_requires: ">=0.17.0"
 author: "Of-Arte"
 license: "MIT"
 env_requires:
-  - name: PUBLIC_ACCESS_TOKEN
-    description: "Public.com access token for broker data"
+  - name: PUBLIC_API_SECRET_KEY
+    description: "Public.com API secret key (exchanged for access token at runtime)"
     required: true
   - name: WM_BASE_URL
     description: "WorldMonitor base URL"

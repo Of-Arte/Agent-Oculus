@@ -84,7 +84,7 @@ def load_config(config_path: str | Path = 'config.yaml') -> dict[str, Any]:
 
 async def get_signals(symbols: list[str] | None = None, config_path: str | Path = 'config.yaml') -> dict:
     config = load_config(config_path)
-    public_enabled = bool(os.getenv('PUBLIC_ACCESS_TOKEN'))
+    public_enabled = bool(os.getenv('PUBLIC_API_SECRET_KEY'))
     wm_enabled = bool(os.getenv('WM_BASE_URL'))
 
     public_client = PublicApiClient(config.get('public', {})) if public_enabled else None

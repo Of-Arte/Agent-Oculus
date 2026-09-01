@@ -92,12 +92,22 @@ class PublicSdkTransport:
 
 
 class PublicApiClient:
-    """Self-bootstrapping Public client."""
+    """Self-bootstrapping Public client.
+
+    Authentication flow (per https://public.com/api/docs/quickstart):
+      1. The user generates a *secret key* from the Public.com settings page.
+      2. The client POSTs the secret key to the token endpoint to obtain a
+         short-lived access token.
+      3. The access token is used as ``Authorization: Bearer <token>`` for
+         all subsequent API requests.
+      4. Tokens are cached and automatically refreshed before expiry.
+    """
 
     def __init__(
         self,
         config: dict[str, Any],
-        bearer_token: str | None = None,
+        api_secret_key: str | None = None,
+        access_token: str | None = None,
         sdk_transport: PublicSdkTransport | Any | None = None,
         bootstrap_http_client: httpx.AsyncClient | Any | None = None,
         sleeper: Any = None,
@@ -114,7 +124,17 @@ class PublicApiClient:
             'portfolio_v2': '/userapigateway/trading/{account_id}/portfolio/v2',
             **dict(config.get('routes', {})),
         }
-        self.bearer_token = bearer_token or os.getenv('PUBLIC_ACCESS_TOKEN', '')
+
+        auth_config = config.get('auth', {})
+        self._token_endpoint = auth_config.get('token_endpoint', '/userapiauthservice/personal/access-tokens')
+        self._token_validity_minutes = int(auth_config.get('token_validity_minutes', 480))
+
+        # The secret key is what the user generates from the Public.com UI.
+        # We exchange it for a short-lived access token at runtime.
+        self._api_secret_key = api_secret_key or os.getenv('PUBLIC_API_SECRET_KEY', '')
+        self._access_token = access_token
+        self._token_expires_at: float = 0.0
+
         self._http = bootstrap_http_client or httpx.AsyncClient(timeout=self.timeout_seconds)
         self._sleep = sleeper or time.sleep
         self._jitter = jitter_fn or random.random
@@ -122,37 +142,44 @@ class PublicApiClient:
         self._sdk_transport = sdk_transport
         if self._sdk_transport is None:
             try:
-                self._sdk_transport = PublicSdkTransport(self.bearer_token, self.fetch_account_id)
+                self._sdk_transport = PublicSdkTransport(self._access_token or '', self.fetch_account_id)
             except RuntimeError:
                 self._sdk_transport = None
+
+    @property
+    def bearer_token(self) -> str:
+        """Return the current access token (lazy-resolved)."""
+        return self._access_token or ''
 
     async def _sleep_async(self, seconds: float) -> None:
         result = self._sleep(seconds)
         if inspect.isawaitable(result):
             await result
 
-    async def _raw_request(self, method: str, path: str, *, params: dict[str, Any] | None = None, json_body: dict[str, Any] | None = None) -> dict[str, Any]:
-        headers = {
-            'Authorization': f'Bearer {self.bearer_token}',
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-        }
-        url = f'{self.base_url}/{path.lstrip("/")}'
+    async def _request_with_retry(
+        self, method: str, url: str, *, params: dict[str, Any] | None = None,
+        json_body: dict[str, Any] | None = None, headers: dict[str, str] | None = None,
+    ) -> httpx.Response:
+        """Shared retry loop for all HTTP requests."""
         last_error: Exception | None = None
         for attempt in range(1, self.max_attempts + 1):
             try:
-                response = await self._http.request(method=method.upper(), url=url, params=params, json=json_body, headers=headers)
+                response = await self._http.request(
+                    method=method.upper(), url=url, params=params, json=json_body, headers=headers,
+                )
                 if response.status_code >= 500:
-                    raise httpx.HTTPStatusError(f'temporary upstream failure: {response.status_code}', request=response.request, response=response)
+                    raise httpx.HTTPStatusError(
+                        f'temporary upstream failure: {response.status_code}',
+                        request=response.request, response=response,
+                    )
                 response.raise_for_status()
-                if not response.text:
-                    return {}
-                payload = response.json()
-                return payload if isinstance(payload, dict) else {'data': payload}
+                return response
             except (httpx.RequestError, httpx.HTTPStatusError) as exc:
                 last_error = exc
                 retriable = isinstance(exc, httpx.RequestError) or (
-                    isinstance(exc, httpx.HTTPStatusError) and exc.response is not None and exc.response.status_code >= 500
+                    isinstance(exc, httpx.HTTPStatusError)
+                    and exc.response is not None
+                    and exc.response.status_code >= 500
                 )
                 if not retriable or attempt >= self.max_attempts:
                     raise
@@ -160,6 +187,73 @@ class PublicApiClient:
                 delay += self._jitter() * self.jitter_seconds
                 await self._sleep_async(delay)
         raise RuntimeError(f'Public API request failed without a terminal response: {last_error}')
+
+    async def fetch_access_token(self, *, force_refresh: bool = False) -> str:
+        """Exchange the API secret key for a short-lived access token.
+
+        Follows the flow documented at https://public.com/api/docs/quickstart:
+        POST to /userapiauthservice/personal/access-tokens with the secret key.
+        """
+        if self._access_token and not force_refresh:
+            # Refresh 60 seconds before actual expiry to avoid edge cases.
+            if time.time() < self._token_expires_at - 60:
+                return self._access_token
+
+        if not self._api_secret_key:
+            raise RuntimeError(
+                'Cannot fetch access token: PUBLIC_API_SECRET_KEY is not set. '
+                'Set the env var or pass api_secret_key to PublicApiClient.'
+            )
+
+        url = f'{self.base_url}{self._token_endpoint}'
+        payload = {
+            'validityInMinutes': self._token_validity_minutes,
+            'secret': self._api_secret_key,
+        }
+        response = await self._request_with_retry(
+            'POST', url,
+            json_body=payload,
+            headers={'Content-Type': 'application/json', 'Accept': 'application/json'},
+        )
+        data = response.json()
+        token = data.get('accessToken') if isinstance(data, dict) else None
+        if not token:
+            raise RuntimeError(f'Public token exchange failed: accessToken missing in response: {data}')
+        self._access_token = token
+        self._token_expires_at = time.time() + (self._token_validity_minutes * 60)
+        return self._access_token
+
+    @property
+    def auth_headers(self) -> dict[str, str]:
+        return {
+            'Authorization': f'Bearer {self._access_token or ""}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
+
+    async def _ensure_token(self) -> str:
+        """Ensure we have a valid access token, fetching one if needed."""
+        if not self._access_token:
+            return await self.fetch_access_token()
+        # Auto-refresh if within 60 seconds of expiry.
+        if time.time() >= self._token_expires_at - 60:
+            return await self.fetch_access_token(force_refresh=True)
+        return self._access_token
+
+    async def _raw_request(
+        self, method: str, path: str, *, params: dict[str, Any] | None = None,
+        json_body: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        await self._ensure_token()
+        url = f'{self.base_url}/{path.lstrip("/")}'
+        response = await self._request_with_retry(
+            method=method.upper(), url=url, params=params, json_body=json_body,
+            headers=self.auth_headers,
+        )
+        if not response.text:
+            return {}
+        payload = response.json()
+        return payload if isinstance(payload, dict) else {'data': payload}
 
     def resolve_route(self, route_key: str, **path_params: Any) -> str:
         return self.routes[route_key].format(**path_params)

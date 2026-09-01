@@ -28,8 +28,14 @@ Copy the example environment file, then add your credentials and connect your Wo
 ```bash
 cp ~/.hermes/profiles/oculus/.env.EXAMPLE ~/.hermes/profiles/oculus/.env
 # Edit ~/.hermes/profiles/oculus/.env with your API keys:
-# PUBLIC_ACCESS_TOKEN=*** WM_BASE_URL=...
+# PUBLIC_API_SECRET_KEY=<your-public-secret-key>  WM_BASE_URL=...
 ```
+
+**Getting your Public.com secret key:**
+
+1. Go to https://public.com/settings/security/api and generate a secret key.
+2. Set it as `PUBLIC_API_SECRET_KEY` in your `.env` file.
+3. The agent will automatically exchange the secret key for a short-lived access token at runtime — you never need to manage access tokens manually.
 
 ### 3. Launch
 Setup your API provider and your model of choice and launch the agent via the installed alias:

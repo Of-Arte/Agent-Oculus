@@ -36,7 +36,7 @@ def validate_config(config: dict[str, Any]) -> dict[str, Any]:
         'wm_base_url': os.getenv('WM_BASE_URL', ''),
         'signal_interval_minutes': schedule.get('context_signals_interval_minutes', 15),
         'execution_enabled': bool(config.get('features', {}).get('execution_enabled', False) and execution_enabled),
-        'public_token': mask_secret(os.getenv('PUBLIC_ACCESS_TOKEN')),
+        'public_token': mask_secret(os.getenv('PUBLIC_API_SECRET_KEY')),
         'wm_key': mask_secret(os.getenv('WORLDMONITOR_API_KEY')),
     }
 

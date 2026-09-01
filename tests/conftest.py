@@ -107,6 +107,10 @@ def base_config() -> dict[str, Any]:
                 'max_delay_seconds': 0,
                 'jitter_seconds': 0,
             },
+            'auth': {
+                'token_endpoint': '/userapiauthservice/personal/access-tokens',
+                'token_validity_minutes': 10,
+            },
             'routes': {
                 'account': '/account',
                 'portfolio_v2': '/userapigateway/trading/{account_id}/portfolio/v2',

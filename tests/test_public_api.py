@@ -10,8 +10,7 @@ from core.public_api.options import PublicOptionsService
 from core.public_api.orders import PublicOrdersService
 from conftest import AsyncMockHttpClient, MockResponse, MockSdkTransport
 
-
-PORTFOLIO_PAYLOAD = {
+_PORTFOLIO_PAYLOAD = {
     'accountId': 'acct-1',
     'accountType': 'INDIVIDUAL',
     'buyingPower': {
@@ -50,26 +49,108 @@ PORTFOLIO_PAYLOAD = {
 }
 
 
+def _token_response() -> MockResponse:
+    """Standard token-exchange response: POST secret -> access token."""
+    return MockResponse(200, payload={'accessToken': 'access-token-abc123'})
+
+
+def _make_client(base_config, bootstrap_http, sdk_transport=None, api_secret_key='secret-key-123'):
+    return PublicApiClient(
+        base_config['public'],
+        api_secret_key=api_secret_key,
+        sdk_transport=sdk_transport,
+        bootstrap_http_client=bootstrap_http,
+        sleeper=lambda _: None,
+        jitter_fn=lambda: 0,
+    )
+
+
+def test_public_client_exchanges_secret_key_for_access_token(base_config):
+    """The client should POST the secret key to the token endpoint and cache the access token."""
+    async def scenario() -> None:
+        bootstrap_http = AsyncMockHttpClient([
+            _token_response(),  # token exchange
+            MockResponse(200, payload={'accounts': [{'accountId': 'acct-123'}]}),
+        ])
+        client = _make_client(base_config, bootstrap_http)
+        token = await client.fetch_access_token()
+        assert token == 'access-token-abc123'
+        # Verify the token exchange request
+        assert len(bootstrap_http.calls) == 1
+        call = bootstrap_http.calls[0]
+        assert call['method'] == 'POST'
+        assert 'access-tokens' in call['url']
+        assert call['json']['secret'] == 'secret-key-123'
+        assert 'validityInMinutes' in call['json']
+        assert call['headers']['Content-Type'] == 'application/json'
+        await client.close()
+    asyncio.run(scenario())
+
+
+def test_public_client_caches_access_token(base_config):
+    """After fetching a token, subsequent calls should reuse it without re-exchanging."""
+    async def scenario() -> None:
+        bootstrap_http = AsyncMockHttpClient([
+            _token_response(),  # only one token exchange expected
+            MockResponse(200, payload={'accounts': [{'accountId': 'acct-123'}]}),
+            MockResponse(200, payload={'accounts': [{'accountId': 'acct-123'}]}),
+        ])
+        client = _make_client(base_config, bootstrap_http)
+        await client.fetch_access_token()
+        await client.fetch_access_token()  # should be cached
+        await client.fetch_account_id()
+        # Only the token exchange call should have been made; account_id calls use _raw_request
+        token_calls = [c for c in bootstrap_http.calls if c['method'] == 'POST' and 'access-tokens' in c['url']]
+        assert len(token_calls) == 1
+        await client.close()
+    asyncio.run(scenario())
+
+
+def test_public_client_uses_access_token_in_requests(base_config):
+    """Subsequent API requests must use the fetched access token as a bearer token."""
+    async def scenario() -> None:
+        bootstrap_http = AsyncMockHttpClient([
+            _token_response(),  # token exchange
+            MockResponse(200, payload={'accounts': [{'accountId': 'acct-123'}]}),
+        ])
+        client = _make_client(base_config, bootstrap_http)
+        await client.fetch_access_token()
+        account_id = await client.fetch_account_id()
+        assert account_id == 'acct-123'
+        # The account request should carry the bearer token
+        account_call = [c for c in bootstrap_http.calls if c['method'] == 'GET' and c['url'].endswith('/account')]
+        assert len(account_call) == 1
+        assert account_call[0]['headers']['Authorization'] == 'Bearer access-token-abc123'
+        await client.close()
+    asyncio.run(scenario())
+
+
 def test_public_client_bootstraps_account_id_once(base_config):
     async def scenario() -> None:
         bootstrap_http = AsyncMockHttpClient([
+            _token_response(),  # token exchange
             MockResponse(200, payload={'accounts': [{'accountId': 'acct-123'}]}),
         ])
-        client = PublicApiClient(base_config['public'], bearer_token='token-123', sdk_transport=MockSdkTransport(portfolio={}), bootstrap_http_client=bootstrap_http, sleeper=lambda _: None, jitter_fn=lambda: 0)
+        client = _make_client(base_config, bootstrap_http, sdk_transport=MockSdkTransport(portfolio={}))
         assert await client.fetch_account_id() == 'acct-123'
         assert await client.fetch_account_id() == 'acct-123'
-        assert len(bootstrap_http.calls) == 1
-        assert bootstrap_http.calls[0]['headers']['Authorization'] == 'Bearer token-123'
+        account_calls = [c for c in bootstrap_http.calls if c['method'] == 'GET' and c['url'].endswith('/account')]
+        assert len(account_calls) == 1
         await client.close()
     asyncio.run(scenario())
 
 
 def test_public_client_retries_bootstrap_request(base_config):
     async def scenario() -> None:
-        bootstrap_http = AsyncMockHttpClient([httpx.ConnectError('boom'), MockResponse(200, payload={'accounts': [{'accountId': 'acct-123'}]})])
-        client = PublicApiClient(base_config['public'], bearer_token='token-123', sdk_transport=MockSdkTransport(portfolio={}), bootstrap_http_client=bootstrap_http, sleeper=lambda _: None, jitter_fn=lambda: 0)
+        bootstrap_http = AsyncMockHttpClient([
+            _token_response(),  # token exchange
+            httpx.ConnectError('boom'),
+            MockResponse(200, payload={'accounts': [{'accountId': 'acct-123'}]}),
+        ])
+        client = _make_client(base_config, bootstrap_http, sdk_transport=MockSdkTransport(portfolio={}))
         assert await client.fetch_account_id() == 'acct-123'
-        assert len(bootstrap_http.calls) == 2
+        account_calls = [c for c in bootstrap_http.calls if c['method'] == 'GET' and c['url'].endswith('/account')]
+        assert len(account_calls) == 2
         await client.close()
     asyncio.run(scenario())
 
@@ -77,13 +158,17 @@ def test_public_client_retries_bootstrap_request(base_config):
 def test_get_portfolio_uses_confirmed_url(base_config):
     async def scenario() -> None:
         bootstrap_http = AsyncMockHttpClient([
+            _token_response(),  # token exchange
             MockResponse(200, payload={'accounts': [{'accountId': 'acct-1'}]}),
-            MockResponse(200, payload=PORTFOLIO_PAYLOAD),
+            MockResponse(200, payload=_PORTFOLIO_PAYLOAD),
         ])
-        client = PublicApiClient(base_config['public'], bearer_token='token-123', sdk_transport=None, bootstrap_http_client=bootstrap_http, sleeper=lambda _: None, jitter_fn=lambda: 0)
+        client = _make_client(base_config, bootstrap_http, sdk_transport=None)
         payload = await client.get_portfolio()
         assert payload['accountId'] == 'acct-1'
-        assert bootstrap_http.calls[1]['url'].endswith('/userapigateway/trading/acct-1/portfolio/v2')
+        # Find the portfolio call (should be the 3rd call: token, account, portfolio)
+        portfolio_call = bootstrap_http.calls[2]
+        assert portfolio_call['url'].endswith('/userapigateway/trading/acct-1/portfolio/v2')
+        assert portfolio_call['headers']['Authorization'] == 'Bearer access-token-abc123'
         await client.close()
     asyncio.run(scenario())
 
@@ -91,12 +176,13 @@ def test_get_portfolio_uses_confirmed_url(base_config):
 def test_account_service_normalizes_portfolio_response(base_config):
     async def scenario() -> None:
         bootstrap_http = AsyncMockHttpClient([
+            _token_response(),  # token exchange
             MockResponse(200, payload={'accounts': [{'accountId': 'acct-1'}]}),
-            MockResponse(200, payload=PORTFOLIO_PAYLOAD),
-            MockResponse(200, payload=PORTFOLIO_PAYLOAD),
-            MockResponse(200, payload=PORTFOLIO_PAYLOAD),
+            MockResponse(200, payload=_PORTFOLIO_PAYLOAD),
+            MockResponse(200, payload=_PORTFOLIO_PAYLOAD),
+            MockResponse(200, payload=_PORTFOLIO_PAYLOAD),
         ])
-        client = PublicApiClient(base_config['public'], bearer_token='token-123', sdk_transport=None, bootstrap_http_client=bootstrap_http, sleeper=lambda _: None, jitter_fn=lambda: 0)
+        client = _make_client(base_config, bootstrap_http, sdk_transport=None)
         service = PublicAccountService(client)
         snapshot = await service.get_account_snapshot()
         positions = await service.list_positions()
@@ -121,8 +207,11 @@ def test_account_service_normalizes_portfolio_response(base_config):
 
 def test_place_order_is_gated(base_config, monkeypatch):
     async def scenario() -> None:
-        bootstrap_http = AsyncMockHttpClient([MockResponse(200, payload={'accounts': [{'accountId': 'acct-1'}]})])
-        client = PublicApiClient(base_config['public'], bearer_token='token-123', sdk_transport=MockSdkTransport(), bootstrap_http_client=bootstrap_http, sleeper=lambda _: None, jitter_fn=lambda: 0)
+        bootstrap_http = AsyncMockHttpClient([
+            _token_response(),  # token exchange
+            MockResponse(200, payload={'accounts': [{'accountId': 'acct-1'}]}),
+        ])
+        client = _make_client(base_config, bootstrap_http, sdk_transport=MockSdkTransport())
         service = PublicOrdersService(client, base_config)
         monkeypatch.setenv('EXECUTION_ENABLED', 'false')
         try:
@@ -136,7 +225,13 @@ def test_place_order_is_gated(base_config, monkeypatch):
 
 
 def test_greeks_cast_from_string(base_config):
-    service = PublicOptionsService(PublicApiClient(base_config['public'], sdk_transport=MockSdkTransport(), bootstrap_http_client=AsyncMockHttpClient([]), sleeper=lambda _: None, jitter_fn=lambda: 0))
+    service = PublicOptionsService(PublicApiClient(
+        base_config['public'],
+        sdk_transport=MockSdkTransport(),
+        bootstrap_http_client=AsyncMockHttpClient([_token_response()]),
+        sleeper=lambda _: None,
+        jitter_fn=lambda: 0,
+    ))
     contracts = service.normalize_chain('AAPL', {'contracts': [{'symbol': 'AAPL250117C00190000', 'optionType': 'CALL', 'strike': '190', 'bid': '4.10', 'ask': '4.30', 'last': '4.20', 'delta': '0.45', 'gamma': '0.10', 'theta': '-0.05', 'vega': '0.12', 'rho': '0.03', 'iv': '0.22'}]})
     assert contracts[0].delta == 0.45
     assert isinstance(contracts[0].delta, float)
@@ -147,16 +242,10 @@ def test_greeks_cast_from_string(base_config):
 def test_public_bootstrap_empty_accounts_raises(base_config):
     async def scenario() -> None:
         bootstrap_http = AsyncMockHttpClient([
+            _token_response(),  # token exchange
             MockResponse(200, payload={'accounts': []}),
         ])
-        client = PublicApiClient(
-            base_config['public'],
-            bearer_token='token-123',
-            sdk_transport=MockSdkTransport(portfolio={}),
-            bootstrap_http_client=bootstrap_http,
-            sleeper=lambda _: None,
-            jitter_fn=lambda: 0,
-        )
+        client = _make_client(base_config, bootstrap_http, sdk_transport=MockSdkTransport(portfolio={}))
         try:
             await client.fetch_account_id()
         except RuntimeError as exc:
@@ -166,23 +255,16 @@ def test_public_bootstrap_empty_accounts_raises(base_config):
         else:
             raise AssertionError('Expected RuntimeError when accounts list is empty')
         await client.close()
-
     asyncio.run(scenario())
 
 
 def test_public_bootstrap_missing_account_id_raises(base_config):
     async def scenario() -> None:
         bootstrap_http = AsyncMockHttpClient([
+            _token_response(),  # token exchange
             MockResponse(200, payload={'accounts': [{'accountId': ''}]}),
         ])
-        client = PublicApiClient(
-            base_config['public'],
-            bearer_token='token-123',
-            sdk_transport=MockSdkTransport(portfolio={}),
-            bootstrap_http_client=bootstrap_http,
-            sleeper=lambda _: None,
-            jitter_fn=lambda: 0,
-        )
+        client = _make_client(base_config, bootstrap_http, sdk_transport=MockSdkTransport(portfolio={}))
         try:
             await client.fetch_account_id()
         except RuntimeError as exc:
@@ -192,5 +274,24 @@ def test_public_bootstrap_missing_account_id_raises(base_config):
         else:
             raise AssertionError('Expected RuntimeError when accountId is missing')
         await client.close()
+    asyncio.run(scenario())
 
+
+def test_fetch_access_token_without_secret_raises(base_config):
+    async def scenario() -> None:
+        bootstrap_http = AsyncMockHttpClient([])
+        client = PublicApiClient(
+            base_config['public'],
+            api_secret_key=None,
+            bootstrap_http_client=bootstrap_http,
+            sleeper=lambda _: None,
+            jitter_fn=lambda: 0,
+        )
+        try:
+            await client.fetch_access_token()
+        except RuntimeError as exc:
+            assert 'PUBLIC_API_SECRET_KEY' in str(exc)
+        else:
+            raise AssertionError('Expected RuntimeError when secret key is missing')
+        await client.close()
     asyncio.run(scenario())

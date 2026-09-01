@@ -13,6 +13,9 @@ public:
     base_delay_seconds: 0.5
     max_delay_seconds: 8.0
     jitter_seconds: 0.25
+  auth:
+    token_endpoint: "/userapiauthservice/personal/access-tokens"
+    token_validity_minutes: 480  # 8 hours; tokens expire after this
   routes:
     account: "/userapigateway/trading/account"
     positions: "/userapigateway/trading/positions"
