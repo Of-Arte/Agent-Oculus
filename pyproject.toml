@@ -3,8 +3,8 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "agent-oculus-v1"
-version = "0.1.0"
+name = "agent-oculus"
+version = "0.3.0"
 description = "Fast finance context signals for Hermes and standalone CLI use"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -26,7 +26,7 @@ dev = [
 ]
 
 [tool.setuptools]
-py-modules = ["main"]
+py-modules = []
 
 [tool.setuptools.packages.find]
 include = ["core*", "tools*"]
