@@ -6,7 +6,7 @@ engine (core/) without creating circular imports.
 
 Profile root resolution: when installed as a Hermes profile, the core/
 package lives at ~/.hermes/profiles/oculus-test/core/. The profile root
-(containing config.yaml, VERSION, core/, tools/) is two levels up from
+(containing config.yaml, VERSION, core/) is two levels up from
 this file: core/_version.py → core/ → profiles/oculus-test/.
 
 REPO_ROOT env var overrides for development.

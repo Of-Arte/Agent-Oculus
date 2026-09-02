@@ -1,9 +1,10 @@
 """Context orchestration — the glue between service clients and FinanceContext.
 
 This module lives in core/synthesis/ and serves as the single entry point for
-building a FinanceContext. It was previously duplicated as tools/get_signals.py
-(a standalone CLI-era orchestrator); the logic is consolidated here so the
-plugin layer (plugins/oculus/tools.py) imports directly from core/.
+building a FinanceContext. It contains the orchestration logic that was
+previously in the standalone tools/get_signals.py CLI entry point,
+consolidated here so the plugin layer (plugins/oculus/tools.py) imports
+directly from core/.
 
 The config resolution and healthcheck version utilities were moved to
 core/_version.py (Phase 3); this module focuses purely on orchestration.

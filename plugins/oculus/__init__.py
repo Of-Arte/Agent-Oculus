@@ -12,7 +12,7 @@ Hermes loads this plugin when enabled in the oculus profile's config.yaml:
   plugins.enabled: [oculus]
 
 The plugin is installed to ~/.hermes/plugins/oculus/ by Hermes at install time.
-The repo root (with core/, tools/) is copied to ~/.hermes/profiles/oculus/.
+The repo root (with core/) is copied to ~/.hermes/profiles/oculus/.
 The sys.path bootstrap below lets the plugin import core/ modules from the
 profile directory.
 """
@@ -32,7 +32,7 @@ def _repo_root() -> str:
 
     Hermes installs:
       - plugin package at ~/.hermes/plugins/oculus/
-      - profile root at  ~/.hermes/profiles/oculus/  (has core/, tools/)
+      - profile root at  ~/.hermes/profiles/oculus/  (has core/)
 
     We look up two levels from this file to find the profile root.
     REPO_ROOT env var overrides for dev/test.

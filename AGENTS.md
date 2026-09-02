@@ -22,9 +22,8 @@ Verified:
 - `skills` — bundled skills under plugins/oculus/skills/ changes
 - `config` — config.yaml, distribution.yaml, VERSION, SOUL.md, AGENT_IDENTITY.md changes
 - `core` — core/ changes
-- `tools` — tools/ changes
 - `docs` — README.md, AGENTS.md, documentation-only changes
-- `chore` — repo maintenance (gitignore, pyproject, file moves)
+- `chore` — repo maintenance (gitignore, pyproject, file moves, tools/ removal)
 
 ### Version tracking
 - **VERSION** (top-level): single version number, single source of truth

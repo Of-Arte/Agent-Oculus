@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "agent-oculus"
 version = "0.3.0"
-description = "Fast finance context signals for Hermes and standalone CLI use"
+description = "Fast finance context signals for Hermes Agent"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

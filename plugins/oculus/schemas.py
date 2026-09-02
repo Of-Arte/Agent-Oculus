@@ -1,7 +1,7 @@
 """Tool input schemas for the oculus plugin.
 
 These schemas are discovered by Hermes before register() is called, so they
-must not import anything from core/ or tools/.
+must not import anything from core/.
 """
 
 from __future__ import annotations
