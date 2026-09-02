@@ -64,8 +64,7 @@ Agent Oculus is built to be modified. To add a new data source or integration:
 Because it is a Hermes profile, you can also install third-party Hermes plugins or MCP servers (`hermes mcp add`) to bring in external functionality without modifying the core repo.
 
 ## Project Structure
-- `main.py`: CLI entry point and agent scheduler.
-- `core/`: Core synthesis engines, analytics, and output formatting.
+- `core/`: Core synthesis engines, API clients, schemas, and IV analysis.
 - `tools/`: Reusable integration modules for financial data.
 - `skills/`: Reusable agentic procedures (see `hermes skills list`).
 - `config.yaml`: Runtime defaults and agent behavior settings.

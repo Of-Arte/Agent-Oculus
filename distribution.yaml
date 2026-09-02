@@ -21,9 +21,7 @@ distribution_owned:
   - README.md
   - core/
   - tools/
-  - scripts/
   - plugins/oculus/
   - skills/
-  - docs/
   - .gitignore
 alias: oculus
