@@ -30,12 +30,10 @@ def mask_secret(value: str | None) -> str:
 
 def validate_config(config: dict[str, Any]) -> dict[str, Any]:
     schedule = config.get('schedule', {})
-    execution_enabled = os.getenv('EXECUTION_ENABLED', 'false').strip().lower() == 'true'
     return {
         'public_base_url': config.get('public', {}).get('base_url', ''),
         'wm_base_url': os.getenv('WM_BASE_URL', ''),
         'signal_interval_minutes': schedule.get('context_signals_interval_minutes', 15),
-        'execution_enabled': bool(config.get('features', {}).get('execution_enabled', False) and execution_enabled),
         'public_token': mask_secret(os.getenv('PUBLIC_API_SECRET_KEY')),
         'wm_key': mask_secret(os.getenv('WORLDMONITOR_API_KEY')),
     }
@@ -76,8 +74,7 @@ def main() -> None:
     summary = validate_config(config)
     print(json.dumps({'config_summary': summary}, indent=2))
 
-    execution_state = 'execution ENABLED' if summary['execution_enabled'] else 'execution disabled'
-    print(f'Agent Oculus ready | context signals active | {execution_state}')
+    print(f'Agent Oculus ready | context signals active')
 
     if args.run_once:
         asyncio.run(run_once(args.symbols))

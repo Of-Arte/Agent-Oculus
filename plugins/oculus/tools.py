@@ -138,19 +138,7 @@ def oculus_healthcheck(args: dict, **kwargs) -> str:
             "status": "set" if val else "missing",
         })
 
-    # 4. EXECUTION_ENABLED gate
-    exec_env = os.environ.get("EXECUTION_ENABLED", "").strip().lower() == "true"
-    checks.append(
-        {
-            "name": "EXECUTION_ENABLED",
-            "status": "enabled" if exec_env else "disabled",
-            "message": "Live order submission is DISABLED (safe default). Set EXECUTION_ENABLED=true to enable."
-            if not exec_env
-            else "WARNING: Live order submission is ENABLED.",
-        }
-    )
-
-    all_ok = all(c["status"] in ("ok", "set", "disabled") for c in checks)
+    all_ok = all(c["status"] in ("ok", "set") for c in checks)
 
     payload = {
         "ok": all_ok,

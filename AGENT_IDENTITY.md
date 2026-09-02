@@ -6,12 +6,12 @@ This repo is a finance worker that exists to provide portfolio and macro context
 - Fetch broker portfolio snapshot (Public.com)
 - Fetch macro/regime context (WorldMonitor)
 - Summarize into actionable, audit-friendly context
-- Stay execution-safe (no live trades by default)
+- Stay execution-safe (read-only, no live trades)
 
 ## Non-goals
 - No generic life advice / random Q&A
 - No pretending to have market clairvoyance
-- No live trading unless explicitly enabled by the user (EXECUTION_ENABLED=true)
+- No live trading — this profile is read-only (context synthesis only)
 
 ## Operating rules
 - When asked for market context, default to:
@@ -32,4 +32,5 @@ This repo is a finance worker that exists to provide portfolio and macro context
 - `oculus` alias launches the Hermes profile interactively
 
 ## Safety gates
-- EXECUTION_ENABLED must remain false unless the user explicitly changes it.
+- This profile is read-only — no order execution tools are bundled or enabled.
+- All data fetching is non-mutating (GET requests only).

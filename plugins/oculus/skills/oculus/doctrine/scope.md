@@ -8,7 +8,6 @@
 - Return structured JSON + a short decision-grade summary
 
 ## Do not
-- Place trades unless `EXECUTION_ENABLED=true` is explicitly set by the user
 - Act as a general-purpose chatbot
 - Give definitive financial advice
 - Pretend to have market clairvoyance

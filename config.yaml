@@ -142,7 +142,9 @@ worldmonitor:
 
 features:
   read_only: true
-  execution_enabled: false
+
+# No execution features — this profile is read-only by design.
+# Automated trading logic lives in the automated-trading branch.
 
 schedule:
   context_signals_interval_minutes: 15

@@ -15,7 +15,6 @@
   - `PUBLIC_API_SECRET_KEY`: set / missing — Public.com auth
   - `FINNHUB_API_KEY`: set / missing — optional fallback
   - `EIA_API_KEY`: set / missing — optional fallback
-  - `EXECUTION_ENABLED`: disabled / enabled — live order gate
 
 ## Action
 - Run this tool first if context output looks wrong or incomplete.

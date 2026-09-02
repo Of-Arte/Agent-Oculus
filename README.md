@@ -180,8 +180,9 @@ classDiagram
 ```
 
 ## Safety & Disclaimer
-- **Default State:** Execution is disabled by default (`EXECUTION_ENABLED=false`).
-- **Decision Support:** This project is designed for financial context synthesis and decision support. Do not enable automated trading logic until you have thoroughly tested your strategy within the sandbox.
+
+- **Read-Only:** This profile is read-only — it synthesizes market context, portfolio data, and signal analysis only. No order execution tools are bundled.
+- **Decision Support:** This project is designed for financial context synthesis and decision support. Automated trading logic (order placement, execution gating) exists only in the `automated-trading` branch and is not included in the default distribution.
 
 ## License
 MIT

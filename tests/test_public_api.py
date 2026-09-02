@@ -3,11 +3,9 @@ from __future__ import annotations
 import asyncio
 import httpx
 
-from core.exceptions import ExecutionDisabledError
 from core.public_api.account import PublicAccountService
 from core.public_api.client import PublicApiClient
 from core.public_api.options import PublicOptionsService
-from core.public_api.orders import PublicOrdersService
 from conftest import AsyncMockHttpClient, MockResponse, MockSdkTransport
 
 _PORTFOLIO_PAYLOAD = {
@@ -201,25 +199,6 @@ def test_account_service_normalizes_portfolio_response(base_config):
         assert orders[0].raw['limitPrice'] == 195.0
         assert orders[0].raw['filledQuantity'] == 0.0
         assert orders[0].raw['averagePrice'] is None
-        await client.close()
-    asyncio.run(scenario())
-
-
-def test_place_order_is_gated(base_config, monkeypatch):
-    async def scenario() -> None:
-        bootstrap_http = AsyncMockHttpClient([
-            _token_response(),  # token exchange
-            MockResponse(200, payload={'accounts': [{'accountId': 'acct-1'}]}),
-        ])
-        client = _make_client(base_config, bootstrap_http, sdk_transport=MockSdkTransport())
-        service = PublicOrdersService(client, base_config)
-        monkeypatch.setenv('EXECUTION_ENABLED', 'false')
-        try:
-            await service.place_order({'symbol': 'AAPL'})
-        except ExecutionDisabledError:
-            assert True
-        else:
-            raise AssertionError('Expected ExecutionDisabledError when execution is disabled')
         await client.close()
     asyncio.run(scenario())
 

@@ -29,5 +29,5 @@ Do not:
 - "get signals" => show the full context-signal output
 
 ## Safety
-- Never suggest setting `EXECUTION_ENABLED=true` unless the user explicitly asks.
-- If the user asks to trade, require explicit confirmation and keep the gate obvious.
+- This agent is read-only by design. It synthesizes context and signal data only.
+- No order execution tools are available in this profile.

@@ -27,7 +27,6 @@ license: MIT
 - Return structured JSON + a short decision-grade summary
 
 **Do not:**
-- Place trades unless `EXECUTION_ENABLED=true` is explicitly set by the user
 - Act as a general-purpose chatbot
 - Give definitive financial advice
 - Pretend to have market clairvoyance
@@ -43,19 +42,14 @@ license: MIT
 - If a service is unavailable, degrade gracefully and say so
 - Prefer context signals over long narrative
 - Surface what we know, what is missing, and what changed
-- For SPX Jade Lizard contexts: $100–$500 max risk framing, 25% profit target, hard stops only (close on downside breach)
-- Max 1 concurrent position under active consideration
-- Market hours context: 10am–4pm ET (reference only; signals flow async)
+- The agent runs a lightweight LLM — do not attempt software-engineering tasks. Those tools are disabled by default.
 
 ## Safety
 
-- `EXECUTION_ENABLED` defaults to `false`.
-- Live order submission requires explicit user opt-in (`EXECUTION_ENABLED=true`).
-- When execution is disabled, `place_order` raises `ExecutionDisabledError`.
-- The agent must never suggest setting `EXECUTION_ENABLED=true` unless the user explicitly asks.
-- Hard stops only on downside breaches (no rolling, no hedging).
-- Order intent is represented as `OrderRequest` for later use by automated trading tools (deferred).
-- The agent runs a lightweight LLM — do not attempt software-engineering tasks.
+- This profile is read-only — no order execution tools are bundled or enabled.
+- All data fetching uses non-mutating (GET) requests only.
+- Automated trading logic (order placement, execution gating, downside management)
+  lives in the `automated-trading` branch and is not included in this distribution.
 
 ## Tool Guidance
 
@@ -69,7 +63,7 @@ license: MIT
 ### `oculus_healthcheck`
 
 - **When to use:** On first setup, after changing env vars, or when the agent seems to be producing incomplete output.
-- **Output:** JSON with per-check status for WM_BASE_URL, PUBLIC_API_SECRET_KEY, FINNHUB_API_KEY, EIA_API_KEY, EXECUTION_ENABLED.
+- **Output:** JSON with per-check status: `WM_BASE_URL`, `PUBLIC_API_SECRET_KEY`, `FINNHUB_API_KEY`, `EIA_API_KEY`.
 - **Action:** Run this before reporting "everything is broken" — it will tell you exactly which service is down.
 
 ## References
