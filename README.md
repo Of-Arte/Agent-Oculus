@@ -37,6 +37,15 @@ cp ~/.hermes/profiles/oculus/.env.example ~/.hermes/profiles/oculus/.env
 2. Set it as `PUBLIC_API_SECRET_KEY` in your `.env` file.
 3. The agent will automatically exchange the secret key for a short-lived access token at runtime — you never need to manage access tokens manually.
 
+**Setting up WorldMonitor:**
+
+Agent Oculus connects to WorldMonitor for macro signals, stablecoin data, and supply chain intelligence.
+
+1. Clone and start WorldMonitor from its repository: https://github.com/koala73/worldmonitor
+2. Obtain an API key from your WorldMonitor instance (if authentication is enabled).
+3. Set `WM_BASE_URL` in your `.env` file to your WorldMonitor instance URL.
+4. If your WorldMonitor instance requires authentication, uncomment and set `WORLDMONITOR_API_KEY` in your `.env` file.
+
 ### 3. Launch
 Setup your API provider and your model of choice and launch the agent via the installed alias:
 ```bash

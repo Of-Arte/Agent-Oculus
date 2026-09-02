@@ -52,8 +52,11 @@ def _parse_dte(expiration: str | None) -> int:
 def _estimate_atm_iv(*, quote: Quote | None, chain) -> float | None:
     """Estimates current ATM Implied Volatility from a normalized options chain.
 
-    Preferentially uses the nearest-strike contract IV relative to the underlying 
-    last price. Falls back to chain-level IV metrics if contract specifics are missing.
+    Uses the nearest-strike contract IV relative to the underlying last price.
+    If no individual contract IV is available, falls back to the chain's average
+    IV (iv_metrics.implied_volatility, which is itself the mean of contract IVs).
+    If that is also None, the caller in context_builder.py falls back to
+    _yfinance_atm_iv() (unauthenticated yfinance options chain lookup).
 
     Args:
         quote (Quote | None): The quote for the underlying asset.

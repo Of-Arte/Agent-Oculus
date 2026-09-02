@@ -12,9 +12,8 @@
 - `ok`: boolean (true only if all required checks pass)
 - `checks`: list of check objects:
   - `WM_BASE_URL`: ok / missing / unreachable — WorldMonitor reachability
-  - `PUBLIC_API_SECRET_KEY`: set / missing — Public.com auth
-  - `FINNHUB_API_KEY`: set / missing — optional fallback
-  - `EIA_API_KEY`: set / missing — optional fallback
+  - `PUBLIC_API_SECRET_KEY`: set / missing — Public.com auth (if missing, IV analysis falls back to yfinance)
+  - `WORLDMONITOR_API_KEY`: set / missing — WorldMonitor auth (if your instance requires it)
 
 ## Action
 - Run this tool first if context output looks wrong or incomplete.

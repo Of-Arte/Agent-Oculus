@@ -63,7 +63,7 @@ license: MIT
 ### `oculus_healthcheck`
 
 - **When to use:** On first setup, after changing env vars, or when the agent seems to be producing incomplete output.
-- **Output:** JSON with per-check status: `WM_BASE_URL`, `PUBLIC_API_SECRET_KEY`, `FINNHUB_API_KEY`, `EIA_API_KEY`.
+- **Output:** JSON with per-check status: `WM_BASE_URL`, `PUBLIC_API_SECRET_KEY`, `WORLDMONITOR_API_KEY`.
 - **Action:** Run this before reporting "everything is broken" — it will tell you exactly which service is down.
 
 ## References
