@@ -57,14 +57,15 @@ oculus
 ## Adding Your Own Integrations
 Agent Oculus is built to be modified. To add a new data source or integration:
 
-1. **Create a Tool:** Add a new script in `tools/` that fetches your desired data.
-2. **Expose to Agent:** Register your tool in the `tools/` module.
-3. **Synthesis:** Update `core/` to include the new signal in the agent's synthesis logic.
+1. **Create a Tool:** Add a new module in `core/` that fetches your desired data.
+2. **Synthesis:** Update `core/synthesis/` to include the new signal in the agent's synthesis logic.
+3. **Expose to Agent:** Register your tool in `plugins/oculus/tools.py` (or create a new plugin).
 
 Because it is a Hermes profile, you can also install third-party Hermes plugins or MCP servers (`hermes mcp add`) to bring in external functionality without modifying the core repo.
 
 ## Project Structure
 - `core/`: Core synthesis engines, API clients, schemas, and IV analysis.
+- `core/synthesis/context_orchestrator.py`: Orchestration entry point (build_context, get_signals_dict).
 - `plugins/oculus/`: Hermes plugin — toolpack (oculus_get_context, oculus_healthcheck), schema definitions, and bundled skill tree.
 - `plugins/oculus/skills/oculus/`: Bundled skill (SKILL.md + refs + doctrine). This is the canonical skill tree.
 - `config.yaml`: Runtime defaults and agent behavior settings.
@@ -76,7 +77,7 @@ The following sequence and object relationship diagram illustrates how data flow
 ```mermaid
 flowchart TD
     %% Triggers
-    Agent["Hermes Agent / CLI"] -->|"Invokes Tool"| ToolSignals["tools/get_signals.py"]
+    Agent["Hermes Agent / CLI"] -->|"Invokes Tool"| ToolSignals["core/synthesis/context_orchestrator.py"]
 
     %% Context Builder
     ToolSignals -->|"Initiates Build"| ContextBuilder["core/synthesis/context_builder.py"]

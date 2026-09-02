@@ -1,3 +1,13 @@
+"""Context orchestration — the glue between service clients and FinanceContext.
+
+This module lives in core/synthesis/ and serves as the single entry point for
+building a FinanceContext. It was previously duplicated as tools/get_signals.py
+(a standalone CLI-era orchestrator); the logic is consolidated here so the
+plugin layer (plugins/oculus/tools.py) imports directly from core/.
+
+The config resolution and healthcheck version utilities were moved to
+core/_version.py (Phase 3); this module focuses purely on orchestration.
+"""
 from __future__ import annotations
 
 import asyncio
@@ -7,6 +17,7 @@ from typing import Any, cast
 
 import yaml
 
+from core._version import get_profile_root
 from core.public_api.account import PublicAccountService
 from core.public_api.client import PublicApiClient
 from core.public_api.market_data import PublicMarketDataService
@@ -20,6 +31,11 @@ from core.worldmonitor.stablecoins import WorldMonitorStablecoinService
 from core.worldmonitor.supply_chain import WorldMonitorSupplyChainService
 from core.worldmonitor.trade_policy import WorldMonitorTradePolicyService
 
+
+# ---------------------------------------------------------------------------
+# Noop fallbacks — used when broker/WM credentials are absent so the pipeline
+# degrades gracefully (macro + IV analysis still work).
+# ---------------------------------------------------------------------------
 
 class _NoopPublicAccountService:
     async def get_account_snapshot(self):
@@ -77,12 +93,15 @@ class _NoopWorldMonitorService:
         return []
 
 
-def _find_config_path(config_path: str | Path | None = None) -> Path:
+# ---------------------------------------------------------------------------
+# Config resolution
+# ---------------------------------------------------------------------------
+
+def find_config_path(config_path: str | Path | None = None) -> Path:
     """Resolve config.yaml relative to the profile root, not cwd.
 
     When the plugin runs from ~/.hermes/plugins/oculus/, the cwd is not
-    the profile root, so a relative 'config.yaml' would fail. We use the
-    same REPO_ROOT/bootstrap pattern as plugins/oculus/__init__.py.
+    the profile root, so a relative 'config.yaml' would fail.
 
     Resolution order:
       1. Explicit config_path if provided and exists
@@ -104,8 +123,6 @@ def _find_config_path(config_path: str | Path | None = None) -> Path:
 
     # Try profile root from core._version
     try:
-        from core._version import get_profile_root
-
         candidate = get_profile_root() / "config.yaml"
         if candidate.exists():
             return candidate
@@ -117,17 +134,26 @@ def _find_config_path(config_path: str | Path | None = None) -> Path:
 
 
 def load_config(config_path: str | Path | None = None) -> dict[str, Any]:
-    resolved = _find_config_path(config_path)
+    """Load config.yaml, resolving the path relative to the profile root."""
+    resolved = find_config_path(config_path)
     with resolved.open("r", encoding="utf-8") as handle:
         return yaml.safe_load(handle) or {}
 
 
-async def _build_context(config_path: str | Path | None = None):
+# ---------------------------------------------------------------------------
+# Orchestration
+# ---------------------------------------------------------------------------
+
+async def build_context(config_path: str | Path | None = None):
     """Build the full FinanceContext with all service clients.
 
     Instantiates Public.com and WorldMonitor clients (or noops when
     credentials are absent), calls build_finance_context(), and ensures
     clients are closed on exit.
+
+    Args:
+        config_path: Optional explicit path to config.yaml. If None,
+            resolves relative to the profile root.
     """
     config = load_config(config_path)
     public_enabled = bool(os.environ.get('PUBLIC_API_SECRET_KEY'))
@@ -156,14 +182,18 @@ async def _build_context(config_path: str | Path | None = None):
             await wm_client.close()
 
 
-async def get_signals(symbols: list[str] | None = None, config_path: str | Path | None = None) -> dict:
+async def get_signals_dict(symbols: list[str] | None = None, config_path: str | Path | None = None) -> dict:
     """Full finance context synthesis — regime, regime_flags, signals, alerts.
 
     Optionally filter to specific symbols.
     Delegates to build_finance_context() which orchestrates Public.com
     and WorldMonitor service clients.
+
+    Args:
+        symbols: Optional list of tickers to filter signals/alerts to.
+        config_path: Optional explicit path to config.yaml.
     """
-    context = await _build_context(config_path)
+    context = await build_context(config_path)
     signals = context.signals
     alerts = context.alerts
     if symbols:
@@ -183,4 +213,4 @@ def run(symbols: list[str] | None = None, config_path: str | Path | None = None)
 
     Called by plugins/oculus/tools.py:oculus_get_context().
     """
-    return asyncio.run(get_signals(symbols, config_path))
+    return asyncio.run(get_signals_dict(symbols, config_path))

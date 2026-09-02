@@ -29,7 +29,7 @@ dev = [
 py-modules = []
 
 [tool.setuptools.packages.find]
-include = ["core*", "tools*"]
+include = ["core*"]
 exclude = ["tests*"]
 
 [tool.pytest.ini_options]

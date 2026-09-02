@@ -14,7 +14,7 @@ from typing import Any
 def oculus_get_context(args: dict, **kwargs) -> str:
     """Run the full finance context synthesis pipeline.
 
-    Delegates to tools.get_signals.run() which asynchronously fetches:
+    Delegates to core.synthesis.context_orchestrator.run() which asynchronously fetches:
       - Public.com portfolio snapshot, positions, quotes, options chains
       - WorldMonitor macro signals, market radar verdict, fear/greed,
         stablecoins, ETF flows, energy, chokepoints, trade policy, BIS rates
@@ -24,7 +24,7 @@ def oculus_get_context(args: dict, **kwargs) -> str:
     returns partial results with clear status markers.
     """
     # Lazy imports — only loaded when this tool is actually called
-    from tools.get_signals import run as _get_signals_run
+    from core.synthesis.context_orchestrator import run as _get_signals_run
 
     symbols = args.get("symbols")
     if symbols is not None and isinstance(symbols, list):
