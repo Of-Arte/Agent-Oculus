@@ -36,7 +36,7 @@ Verified:
 Each phase of a multi-phase refactor gets its own commit. Never bundle two phases in one commit.
 
 ## Verification steps
-- Syntax check: `python -m py_compile plugins/oculus/__init__.py plugins/oculus/tools.py plugins/oculus/schemas.py`
+- Syntax check: `python -m py_compile plugins/oculus/__init__.py plugins/oculus/tools.py plugins/oculus/schemas.py core/synthesis/context_orchestrator.py core/_version.py`
 - Plugin discovery: `hermes profile install . --name oculus-test --alias --force -y` (in fresh HERMES_HOME)
 - Skill loading: `hermes -p oculus-test skills list`
 - Tool listing: `hermes -p oculus-test tools list`
@@ -46,5 +46,5 @@ Each phase of a multi-phase refactor gets its own commit. Never bundle two phase
 1. Edit files in the repo
 2. Run syntax checks + pytest
 3. Reinstall profile: `hermes profile install . --name oculus --alias --force -y`
-4. Verify tools/skills appear
+4. Verify plugin tools and skills appear
 5. Test: `oculus chat -q "run healthcheck"`
