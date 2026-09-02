@@ -1,5 +1,5 @@
 name: oculus
-version: 0.2.0
+version: 0.3.0
 description: "Open-source financial context engine and synthesis layer for Hermes Agent"
 hermes_requires: ">=0.17.0"
 author: "Of-Arte"
@@ -7,14 +7,23 @@ license: "MIT"
 env_requires:
   - name: PUBLIC_API_SECRET_KEY
     description: "Public.com API secret key (exchanged for access token at runtime)"
-    required: true
+    required: false
   - name: WM_BASE_URL
     description: "WorldMonitor base URL"
     required: true
 distribution_owned:
+  - VERSION
   - SOUL.md
+  - AGENT_IDENTITY.md
   - config.yaml
+  - .env.example
+  - AGENTS.md
+  - README.md
   - core/
   - tools/
-  - main.py
-alias: oculus-fresh
+  - scripts/
+  - plugins/oculus/
+  - skills/
+  - docs/
+  - .gitignore
+alias: oculus
