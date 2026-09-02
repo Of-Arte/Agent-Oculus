@@ -26,7 +26,7 @@ hermes profile install https://github.com/Of-Arte/agent-oculus --name oculus --a
 ### 2. Configure Your Environment
 Copy the example environment file, then add your credentials and connect your WorldMonitor API endpoint:
 ```bash
-cp ~/.hermes/profiles/oculus/.env.EXAMPLE ~/.hermes/profiles/oculus/.env
+cp ~/.hermes/profiles/oculus/.env.example ~/.hermes/profiles/oculus/.env
 # Edit ~/.hermes/profiles/oculus/.env with your API keys:
 # PUBLIC_API_SECRET_KEY=<your-public-secret-key>  WM_BASE_URL=...
 ```

@@ -23,6 +23,9 @@ build/
 dist/
 *.egg-info/
 
+# Lockfiles
+uv.lock
+
 # IDEs & Editors
 .vscode/
 .idea/
@@ -35,3 +38,9 @@ Thumbs.db
 
 # Project caches
 .orbis-cache/
+
+# Hermes profile runtime artifacts
+.hermes_history
+*.bak.*
+.cache/
+.skins/
