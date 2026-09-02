@@ -23,6 +23,11 @@ Install the project directly from the repository to set up a dedicated agent ide
 hermes profile install https://github.com/Of-Arte/Agent-Oculus --name oculus --alias
 ```
 
+**For testing a specific PR or branch:**
+```bash
+hermes profile install https://github.com/Of-Arte/Agent-Oculus --branch <branch-name> --name oculus-test --alias --force -y
+```
+
 ### 2. Configure Your Environment
 Copy the example environment file, then add your credentials and connect your WorldMonitor API endpoint:
 ```bash

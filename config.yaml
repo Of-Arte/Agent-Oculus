@@ -131,6 +131,7 @@ public:
     token_validity_minutes: 480
   routes:
     account: /userapigateway/trading/account
+    portfolio_v2: /userapigateway/trading/{account_id}/portfolio/v2
     positions: /userapigateway/trading/positions
     orders: /userapigateway/trading/orders
     quotes: /userapigateway/marketdata/{account_id}/quotes
