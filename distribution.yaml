@@ -22,6 +22,5 @@ distribution_owned:
   - core/
   - tools/
   - plugins/oculus/
-  - skills/
   - .gitignore
 alias: oculus

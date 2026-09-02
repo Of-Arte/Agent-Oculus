@@ -19,7 +19,7 @@ Verified:
 ### Scope conventions
 - `v0.3.0` or `v<next>` — profile distribution version release commits
 - `plugin` — plugins/ changes
-- `skills` — skills/ changes
+- `skills` — bundled skills under plugins/oculus/skills/ changes
 - `config` — config.yaml, distribution.yaml, VERSION, SOUL.md, AGENT_IDENTITY.md changes
 - `core` — core/ changes
 - `tools` — tools/ changes

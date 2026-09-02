@@ -65,8 +65,8 @@ Because it is a Hermes profile, you can also install third-party Hermes plugins 
 
 ## Project Structure
 - `core/`: Core synthesis engines, API clients, schemas, and IV analysis.
-- `tools/`: Reusable integration modules for financial data.
-- `skills/`: Reusable agentic procedures (see `hermes skills list`).
+- `plugins/oculus/`: Hermes plugin — toolpack (oculus_get_context, oculus_healthcheck), schema definitions, and bundled skill tree.
+- `plugins/oculus/skills/oculus/`: Bundled skill (SKILL.md + refs + doctrine). This is the canonical skill tree.
 - `config.yaml`: Runtime defaults and agent behavior settings.
 
 ## Architecture & Data Flow
