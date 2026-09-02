@@ -20,7 +20,7 @@ Agent Oculus provides structured financial signals to inform decision-making:
 Install the project directly from the repository to set up a dedicated agent identity with its own memory, skills, and configuration.
 
 ```bash
-hermes profile install https://github.com/Of-Arte/agent-oculus --name oculus --alias
+hermes profile install https://github.com/Of-Arte/Agent-Oculus --name oculus --alias
 ```
 
 ### 2. Configure Your Environment
