@@ -142,9 +142,10 @@ worldmonitor:
 
 features:
   read_only: true
+  execution_enabled: false
 
-# No execution features — this profile is read-only by design.
-# Automated trading logic lives in the automated-trading branch.
+# Trading logic lives on the automated-trading branch.
+# Set EXECUTION_ENABLED=true in .env only if you need order execution.
 
 schedule:
   context_signals_interval_minutes: 15

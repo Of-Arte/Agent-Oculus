@@ -1,11 +1,22 @@
 # Safety
 
-## Read-Only Profile
+## Execution Gate
 
-- This profile is read-only — no order execution tools are bundled or enabled.
-- All data fetching uses non-mutating (GET) requests only.
-- Automated trading logic (order placement, execution gating, downside management)
-  lives in the `automated-trading` branch and is not included in this distribution.
+- `EXECUTION_ENABLED` defaults to `false`.
+- Live order submission requires explicit user opt-in (`EXECUTION_ENABLED=true`).
+- When execution is disabled, `place_order` raises `ExecutionDisabledError`.
+- The agent must never suggest setting `EXECUTION_ENABLED=true` unless the user explicitly asks.
+
+## Downside Management (v1)
+
+- Hard stops only: close on downside breach.
+- No rolling, no hedging (for initial implementation).
+
+## Order Intent
+
+- All trade suggestions are represented as `OrderRequest` objects for later use
+  by automated trading tools (deferred to feat/automated-trading branch).
+- The agent does not execute orders directly; it synthesizes context and order intent.
 
 ## LLM Capability
 

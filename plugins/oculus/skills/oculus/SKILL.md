@@ -23,10 +23,11 @@ license: MIT
 - Fetch portfolio snapshot from Public.com (positions, buying power, equity)
 - Fetch macro/regime context from WorldMonitor (sentiment, stablecoins, energy, supply chains, trade policy, BIS data)
 - Compute IV rank / percentile from options chains or yfinance fallback
-- Synthesize all signals into a `FinanceContext` with regime classification, alerts, and IV analysis
+- Synthesize all signals into a `FinanceContext` with regime classification, alerts, and strategy recommendation
 - Return structured JSON + a short decision-grade summary
 
 **Do not:**
+- Place trades unless `EXECUTION_ENABLED=true` is explicitly set by the user
 - Act as a general-purpose chatbot
 - Give definitive financial advice
 - Pretend to have market clairvoyance
@@ -45,9 +46,11 @@ license: MIT
 
 ## Safety
 
-- This profile is read-only — no order execution tools are bundled or enabled.
-- All data fetching is non-mutating (GET requests only).
-- The agent runs a lightweight LLM — do not attempt software-engineering tasks. Those tools are disabled by default.
+- `EXECUTION_ENABLED` defaults to `false`. Live order submission requires explicit user opt-in.
+- When execution is disabled, `place_order` raises `ExecutionDisabledError`.
+- Hard stops only on downside breaches (no rolling, no hedging) for initial implementation.
+- Order intent is represented as `OrderRequest` for later use by automated trading tools.
+- The agent runs a lightweight LLM — do not attempt software-engineering tasks (code editing, repo management, etc.). Those tools are disabled by default.
 
 ## Tool Guidance
 
@@ -61,5 +64,5 @@ license: MIT
 ### `oculus_healthcheck`
 
 - **When to use:** On first setup, after changing env vars, or when the agent seems to be producing incomplete output.
-- **Output:** JSON with per-check status: `WM_BASE_URL`, `PUBLIC_API_SECRET_KEY`, `WORLDMONITOR_API_KEY`.
+- **Output:** JSON with per-check status: `WM_BASE_URL`, `PUBLIC_API_SECRET_KEY`, `FINNHUB_API_KEY`, `EIA_API_KEY`, `EXECUTION_ENABLED`.
 - **Action:** Run this before reporting "everything is broken" — it will tell you exactly which service is down.

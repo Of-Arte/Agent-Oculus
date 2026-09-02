@@ -435,6 +435,21 @@ class IVRankResult:
 
 
 @dataclass(slots=True)
+class StrategyRecommendation:
+    strategy_type: str
+    rationale: str
+    max_allocation: float
+    target_dte: int
+    target_delta_short: float
+    sizing_contracts: int
+    blocked: bool
+    blocked_reason: str | None
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(slots=True)
 class OptionsChain:
     symbol: str
     expiration: str | None

@@ -54,8 +54,8 @@ def oculus_healthcheck(args: dict, **kwargs) -> str:
 
     Checks:
       - WM_BASE_URL is set and reachable
-      - PUBLIC_API_SECRET_KEY is set (or yfinance fallback is available for IV data)
-      - WORLDMONITOR_API_KEY presence (if your WorldMonitor instance requires auth)
+      - PUBLIC_API_SECRET_KEY is set (or read-only fallback is available)
+      - Optional fallback providers (FINNHUB_API_KEY, EIA_API_KEY)
     """
     # Lazy import
     from core.output.formatter import format_for_hermes  # noqa: F401 — verify import works
@@ -115,27 +115,42 @@ def oculus_healthcheck(args: dict, **kwargs) -> str:
                 }
             )
 
-    # 2. PUBLIC_API_SECRET_KEY (read-only fallback is available via yfinance)
+    # 2. PUBLIC_API_SECRET_KEY (read-only fallback is acceptable)
     pub_key = os.environ.get("PUBLIC_API_SECRET_KEY", "").strip()
     if pub_key:
         checks.append({"name": "PUBLIC_API_SECRET_KEY", "status": "set"})
     else:
+        finnhub = os.environ.get("FINNHUB_API_KEY", "").strip()
         checks.append(
             {
                 "name": "PUBLIC_API_SECRET_KEY",
                 "status": "missing",
-                "message": "Public.com key not set. IV rank data will use yfinance public options chain as fallback (no auth required). Portfolio and real-time quote data will be unavailable.",
+                "message": "Public.com key not set. Read-only mode requires FINNHUB_API_KEY or EIA_API_KEY as fallback.",
+                "fallback_available": bool(finnhub),
             }
         )
 
-    # 3. WorldMonitor API key (if your instance requires auth)
-    wm_key = os.environ.get("WORLDMONITOR_API_KEY", "").strip()
-    checks.append({
-        "name": "WORLDMONITOR_API_KEY",
-        "status": "set" if wm_key else "missing",
-    })
+    # 3. Optional fallback keys
+    for var in ("FINNHUB_API_KEY", "EIA_API_KEY"):
+        val = os.environ.get(var, "").strip()
+        checks.append({
+            "name": var,
+            "status": "set" if val else "missing",
+        })
 
-    all_ok = all(c["status"] in ("ok", "set") for c in checks)
+    # 4. EXECUTION_ENABLED gate
+    exec_env = os.environ.get("EXECUTION_ENABLED", "").strip().lower() == "true"
+    checks.append(
+        {
+            "name": "EXECUTION_ENABLED",
+            "status": "enabled" if exec_env else "disabled",
+            "message": "Live order submission is DISABLED (safe default). Set EXECUTION_ENABLED=true to enable."
+            if not exec_env
+            else "WARNING: Live order submission is ENABLED.",
+        }
+    )
+
+    all_ok = all(c["status"] in ("ok", "set", "disabled") for c in checks)
 
     payload = {
         "ok": all_ok,

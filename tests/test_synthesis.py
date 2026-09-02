@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
+from core.exceptions import ExecutionDisabledError
 from core.output.formatter import format_for_hermes
 from core.schemas import (
     AccountSnapshot,
@@ -23,6 +24,7 @@ from core.schemas import (
 from core.synthesis.context_builder import build_finance_context
 from core.synthesis.regime_detector import detect_regime
 from core.synthesis.alert_engine import evaluate_alerts
+from tools.place_order import place_order
 
 
 class StubPublicAccountService:
@@ -170,6 +172,18 @@ def test_alert_stablecoin_depeg():
     context.stablecoins = [StablecoinStatus('USDT', 0.994, 1.0, -0.6, True)]
     alerts = evaluate_alerts(context)
     assert any(alert.alert_type == 'STABLECOIN_DEPEG' and alert.severity == 'CRITICAL' for alert in alerts)
+
+
+def test_place_order_execution_disabled(monkeypatch):
+    async def scenario():
+        monkeypatch.delenv('EXECUTION_ENABLED', raising=False)
+        try:
+            await place_order({'symbol': 'AAPL', 'side': 'BUY', 'quantity': 1, 'order_type': 'market'})
+        except ExecutionDisabledError:
+            assert True
+        else:
+            raise AssertionError('Expected ExecutionDisabledError')
+    asyncio.run(scenario())
 
 
 def test_format_for_hermes_shape():
