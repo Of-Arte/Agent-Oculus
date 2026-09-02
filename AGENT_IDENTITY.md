@@ -27,7 +27,7 @@ This repo is a finance worker that exists to provide portfolio and macro context
 - Keep setup simple: install as Hermes profile, set env vars, launch via alias.
 
 ## Primary entrypoints
-- `oculus_get_context` — full finance context synthesis (portfolio + macro + IV + alerts + strategy)
+- `oculus_get_context` — full finance context synthesis (portfolio + macro + IV + alerts + regime)
 - `oculus_healthcheck` — env/config validation + service availability
 - `oculus` alias launches the Hermes profile interactively
 

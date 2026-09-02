@@ -9,7 +9,7 @@ Agent Oculus provides structured financial signals to inform decision-making:
 - **Portfolio Context:** Integrates with brokerage APIs to track real-time positions, buying power, and account health.
 - **WorldMonitor Macro Intelligence:** Connects to WorldMonitor feeds to track global macro regimes, stablecoin peg stability, and critical supply chain chokepoints.
 - **Volatility Analysis:** Real-time IV rank and percentile monitoring to identify high-volatility regimes.
-- **Systematic Verdicts:** Synthesizes portfolio and macro data into structured JSON signals, offering regime classifications (e.g., TRANSITIONAL, HIGH_VOLATILITY) and strategy recommendations.
+- **Systematic Verdicts:** Synthesizes portfolio and macro data into structured JSON signals, offering regime classifications (e.g., TRANSITIONAL, HIGH_VOLATILITY) and IV analysis.
 - **Safety-First Execution:** Designed for decision support; automated trading is strictly opt-in and disabled by default.
 
 *Note: Oculus utilizes a fallback system that maintains visibility even when primary APIs are unavailable.*

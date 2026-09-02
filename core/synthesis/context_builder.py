@@ -12,7 +12,6 @@ from core.schemas import FinanceContext, MarketRadarVerdict, FearGreedIndex, Quo
 from core.synthesis.alert_engine import build_normalized_signals, evaluate_alerts
 from core.synthesis.regime_detector import detect_regime
 from core.analytics.iv_rank import IVRankEngine
-from core.analytics.strategy_selector import select_strategy
 from core.worldmonitor.btc_etf_flows import WorldMonitorBtcEtfFlowService
 from core.worldmonitor.client import WMError, WorldMonitorClient
 from core.worldmonitor.macro import WorldMonitorMacroService

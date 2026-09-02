@@ -14,7 +14,7 @@
 - `regime_flags`: list of flag strings (e.g. MACRO_SHOCK_RISK, LIQUIDITY_STRESS, HIGH_VOLATILITY)
 - `signals`: normalized signal objects (category, source, state, score, confidence)
 - `alerts`: alert objects (type, severity, direction, message)
-- `iv_analysis`: per-symbol IV rank, IV percentile, vol regime, strategy recommendation
+- `iv_analysis`: per-symbol IV rank, IV percentile, vol regime
 - `summary`: position count, active symbols, fear/greed, verdict, depegged stablecoins, critical chokepoints
 
 ## Degraded Mode
