@@ -82,10 +82,16 @@ def load_config(config_path: str | Path = 'config.yaml') -> dict[str, Any]:
         return yaml.safe_load(handle) or {}
 
 
-async def get_signals(symbols: list[str] | None = None, config_path: str | Path = 'config.yaml') -> dict:
+async def _build_context(config_path: str | Path = 'config.yaml'):
+    """Build the full FinanceContext with all service clients.
+
+    Instantiates Public.com and WorldMonitor clients (or noops when
+    credentials are absent), calls build_finance_context(), and ensures
+    clients are closed on exit.
+    """
     config = load_config(config_path)
-    public_enabled = bool(os.getenv('PUBLIC_API_SECRET_KEY'))
-    wm_enabled = bool(os.getenv('WM_BASE_URL'))
+    public_enabled = bool(os.environ.get('PUBLIC_API_SECRET_KEY'))
+    wm_enabled = bool(os.environ.get('WM_BASE_URL'))
 
     public_client = PublicApiClient(config.get('public', {})) if public_enabled else None
     wm_client = WorldMonitorClient() if wm_enabled else None
@@ -102,18 +108,7 @@ async def get_signals(symbols: list[str] | None = None, config_path: str | Path 
             wm_supply_chain_service=cast(WorldMonitorSupplyChainService, WorldMonitorSupplyChainService(wm_client)) if wm_client else cast(WorldMonitorSupplyChainService, _NoopWorldMonitorService()),
             wm_trade_policy_service=cast(WorldMonitorTradePolicyService, WorldMonitorTradePolicyService(wm_client)) if wm_client else cast(WorldMonitorTradePolicyService, _NoopWorldMonitorService()),
         )
-        signals = context.signals
-        alerts = context.alerts
-        if symbols:
-            symbol_set = {symbol.upper() for symbol in symbols}
-            signals = [signal for signal in signals if signal.symbol is None or signal.symbol.upper() in symbol_set]
-            alerts = [alert for alert in alerts if alert.ticker is None or alert.ticker.upper() in symbol_set]
-        return {
-            'regime': context.regime,
-            'regime_flags': context.regime_flags,
-            'signals': [signal.to_dict() for signal in signals],
-            'alerts': [alert.to_dict() for alert in alerts],
-        }
+        return context
     finally:
         if public_client is not None:
             await public_client.close()
@@ -121,5 +116,31 @@ async def get_signals(symbols: list[str] | None = None, config_path: str | Path 
             await wm_client.close()
 
 
+async def get_signals(symbols: list[str] | None = None, config_path: str | Path = 'config.yaml') -> dict:
+    """Full finance context synthesis — regime, regime_flags, signals, alerts.
+
+    Optionally filter to specific symbols.
+    Delegates to build_finance_context() which orchestrates Public.com
+    and WorldMonitor service clients.
+    """
+    context = await _build_context(config_path)
+    signals = context.signals
+    alerts = context.alerts
+    if symbols:
+        symbol_set = {symbol.upper() for symbol in symbols}
+        signals = [signal for signal in signals if signal.symbol is None or signal.symbol.upper() in symbol_set]
+        alerts = [alert for alert in alerts if alert.ticker is None or alert.ticker.upper() in symbol_set]
+    return {
+        'regime': context.regime,
+        'regime_flags': context.regime_flags,
+        'signals': [signal.to_dict() for signal in signals],
+        'alerts': [alert.to_dict() for alert in alerts],
+    }
+
+
 def run(symbols: list[str] | None = None, config_path: str | Path = 'config.yaml') -> dict:
+    """Synchronous entrypoint — full finance context synthesis.
+
+    Called by plugins/oculus/tools.py:oculus_get_context().
+    """
     return asyncio.run(get_signals(symbols, config_path))
