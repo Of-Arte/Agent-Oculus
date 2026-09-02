@@ -97,7 +97,7 @@ class MockSdkTransport:
 @pytest.fixture
 def base_config() -> dict[str, Any]:
     return {
-        'version': '0.1.0',
+        'version': '0.3.0',
         'public': {
             'base_url': 'https://public.invalid',
             'timeout_seconds': 1,

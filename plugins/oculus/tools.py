@@ -137,10 +137,17 @@ def oculus_healthcheck(args: dict, **kwargs) -> str:
 
     all_ok = all(c["status"] in ("ok", "set") for c in checks)
 
+    # Pull version from VERSION file instead of hardcoding
+    try:
+        from core._version import get_version
+        version = get_version()
+    except Exception:
+        version = "0.3.0"
+
     payload = {
         "ok": all_ok,
         "agent": "agent-oculus",
-        "version": "0.3.0",
+        "version": version,
         "checks": checks,
     }
     return json.dumps(payload, indent=2)

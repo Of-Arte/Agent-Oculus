@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from core.schemas import FinanceContext
+from core._version import get_agent_name
 
 
 def format_for_hermes(context: FinanceContext) -> dict:
@@ -17,7 +18,7 @@ def format_for_hermes(context: FinanceContext) -> dict:
         })
 
     return {
-        'agent': 'agent-oculus-v1',
+        'agent': get_agent_name(),
         'timestamp': context.timestamp,
         'regime': context.regime,
         'regime_flags': context.regime_flags,
