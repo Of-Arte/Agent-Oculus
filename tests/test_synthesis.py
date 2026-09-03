@@ -198,6 +198,58 @@ def test_format_for_hermes_stablecoin_depegs_only_when_flagged():
     assert payload['summary']['depegged_stablecoins'] == ['USDT']
 
 
+def test_context_via_bundles():
+    """New deep Module Interface: 2 bundles instead of 9 params."""
+    async def scenario():
+        from core.synthesis.context import PublicBundle, WorldMonitorBundle, build_finance_context
+
+        account, positions, quotes, chains, macro, verdict, fear_greed, stablecoins, etf_flows, energy, chokepoints, trade_restrictions, bis_rates = make_context_fixture()
+        public = PublicBundle(
+            account=StubPublicAccountService(account, positions),
+            market_data=StubPublicMarketDataService(quotes),
+            options=StubPublicOptionsService(chains),
+        )
+        wm = WorldMonitorBundle(
+            macro=StubMethodService(get_macro_signals=lambda: _ret(macro), get_energy_prices=lambda: _ret(energy), get_bis_policy_rates=lambda: _ret(bis_rates)),
+            market_radar=StubMethodService(get_market_radar_verdict=lambda: _ret(verdict), get_fear_greed=lambda: _ret(fear_greed)),
+            stablecoin=StubMethodService(list_stablecoin_markets=lambda: _ret(stablecoins)),
+            etf_flow=StubMethodService(list_etf_flows=lambda: _ret(etf_flows)),
+            supply_chain=StubMethodService(get_chokepoint_status=lambda: _ret(chokepoints)),
+            trade_policy=StubMethodService(get_trade_restrictions=lambda: _ret(trade_restrictions)),
+        )
+        context = await build_finance_context(public=public, wm=wm)
+        assert context.account is not None
+        assert context.macro is not None
+    asyncio.run(scenario())
+
+
+def test_context_include_filters_slices():
+    async def scenario():
+        from core.synthesis.context import PublicBundle, WorldMonitorBundle, build_finance_context
+
+        account, positions, quotes, chains, macro, verdict, fear_greed, stablecoins, etf_flows, energy, chokepoints, trade_restrictions, bis_rates = make_context_fixture()
+        public = PublicBundle(
+            account=StubPublicAccountService(account, positions),
+            market_data=StubPublicMarketDataService(quotes),
+            options=StubPublicOptionsService(chains),
+        )
+        wm = WorldMonitorBundle(
+            macro=StubMethodService(get_macro_signals=lambda: _ret(macro), get_energy_prices=lambda: _ret(energy), get_bis_policy_rates=lambda: _ret(bis_rates)),
+            market_radar=StubMethodService(get_market_radar_verdict=lambda: _ret(verdict), get_fear_greed=lambda: _ret(fear_greed)),
+            stablecoin=StubMethodService(list_stablecoin_markets=lambda: _ret(stablecoins)),
+            etf_flow=StubMethodService(list_etf_flows=lambda: _ret(etf_flows)),
+            supply_chain=StubMethodService(get_chokepoint_status=lambda: _ret(chokepoints)),
+            trade_policy=StubMethodService(get_trade_restrictions=lambda: _ret(trade_restrictions)),
+        )
+        context = await build_finance_context(public=public, wm=wm, include={"macro", "radar"})
+        assert context.macro is not None
+        assert context.market_radar is not None
+        # excluded slices should be None
+        assert context.stablecoins is None
+        assert context.etf_flows is None
+    asyncio.run(scenario())
+
+
 async def _ret(value):
     return value
 
