@@ -23,7 +23,7 @@ def oculus_get_context(args: dict, **kwargs) -> str:
     Degrades gracefully: if Public.com or WorldMonitor are unavailable,
     returns partial results with clear status markers.
     """
-    # Lazy imports — only loaded when this tool is actually called
+    # Lazy imports - only loaded when this tool is actually called
     from core.synthesis.context_orchestrator import run as _get_signals_run
 
     symbols = args.get("symbols")
@@ -58,7 +58,7 @@ def oculus_healthcheck(args: dict, **kwargs) -> str:
       - WORLDMONITOR_API_KEY presence (if your WorldMonitor instance requires auth)
     """
     # Lazy import
-    from core.output.formatter import format_for_hermes  # noqa: F401 — verify import works
+    from core.output.formatter import format_for_hermes  # noqa: F401 - verify import works
 
     import urllib.request
     import urllib.error

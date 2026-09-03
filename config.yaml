@@ -1,8 +1,8 @@
-# Agent Oculus profile config — app-specific defaults only.
+# Agent Oculus profile config - app-specific defaults only.
 # Model/provider selection is NOT hardcoded here; users choose via
 # `hermes model` or `oculus model` at install time.
 
-# Terminal working directory — anchors the agent to this profile's workspace.
+# Terminal working directory - anchors the agent to this profile's workspace.
 terminal:
   cwd: ~/.hermes/profiles/oculus
 
@@ -17,7 +17,7 @@ plugins:
 # are needed for finance context synthesis.
 skills:
   disabled:
-    # Software engineering (not needed — lightweight LLM)
+    # Software engineering (not needed - lightweight LLM)
     - claude-code
     - codex
     - opencode
@@ -99,7 +99,7 @@ skills:
     - xitter
     - xurl
     - spotify
-    # Research (not needed — web search is enabled below)
+    # Research (not needed - web search is enabled below)
     - arxiv
     - blogwatcher
     - competitor-news-monitor
@@ -144,7 +144,7 @@ worldmonitor:
 features:
   read_only: true
 
-# No execution features — this profile is read-only by design.
+# No execution features - this profile is read-only by design.
 # Automated trading logic lives in the automated-trading branch.
 
 schedule:

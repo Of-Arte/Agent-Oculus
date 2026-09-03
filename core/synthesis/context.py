@@ -23,7 +23,7 @@ from core.analytics.iv_rank import IVRankEngine
 from core.public_api.account import PublicAccountService
 from core.public_api.market_data import PublicMarketDataService
 from core.public_api.options import PublicOptionsService
-from core.schemas import FinanceContext, MarketRadarVerdict, FearGreedIndex, Quote, utc_now_iso
+from core.schemas import FinanceContext, MarketRadarVerdict, FearGreedIndex, Quote, PortfolioSnapshot, utc_now_iso
 from core.synthesis.alert_engine import build_normalized_signals, evaluate_alerts
 from core.synthesis.regime_detector import detect_regime
 from core.worldmonitor.btc_etf_flows import WorldMonitorBtcEtfFlowService
@@ -346,6 +346,19 @@ async def build_finance_context(
 
     regime_result = detect_regime(market_radar or default_verdict, fear_greed or default_fg, default_chokepoints, default_stablecoins)
 
+    # Build canonical Portfolio View alongside legacy account+positions
+    portfolio = None
+    if account is not None:
+        portfolio = PortfolioSnapshot(
+            account_id=account.account_id,
+            generated_at=utc_now_iso(),
+            buying_power=account.buying_power,
+            cash=account.cash,
+            equity=account.equity,
+            positions=list(positions),
+            raw=dict(account.raw),
+        )
+
     context = FinanceContext(
         account=account,
         positions=positions,
@@ -366,6 +379,7 @@ async def build_finance_context(
         regime_flags=regime_result.flags,
         timestamp=utc_now_iso(),
         previous_regime=previous_regime,
+        portfolio=portfolio,
     )
     context.signals = build_normalized_signals(context)
     context.alerts = evaluate_alerts(context)

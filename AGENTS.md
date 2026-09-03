@@ -7,7 +7,7 @@
 ```
 <scope>: <short summary>
 
-[optional body — up to ~72 chars per line]
+[optional body - up to ~72 chars per line]
 
 - Bullet list of changes if multiple
 

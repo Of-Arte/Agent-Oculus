@@ -46,7 +46,7 @@ cp ~/.hermes/profiles/oculus/.env.example ~/.hermes/profiles/oculus/.env
 
 1. Go to https://public.com/settings/security/api and generate a secret key.
 2. Set it as `PUBLIC_API_SECRET_KEY` in your `.env` file.
-3. The agent will automatically exchange the secret key for a short-lived access token at runtime — you never need to manage access tokens manually.
+3. The agent will automatically exchange the secret key for a short-lived access token at runtime - you never need to manage access tokens manually.
 
 **Setting up WorldMonitor:**
 
@@ -77,7 +77,7 @@ Because it is a Hermes profile, you can also install third-party Hermes plugins 
 ## Project Structure
 - `core/`: Core synthesis engines, API clients, schemas, and IV analysis.
 - `core/synthesis/context_orchestrator.py`: Orchestration entry point (build_context, get_signals_dict).
-- `plugins/oculus/`: Hermes plugin — toolpack (oculus_get_context, oculus_healthcheck), schema definitions, and bundled skill tree.
+- `plugins/oculus/`: Hermes plugin - toolpack (oculus_get_context, oculus_healthcheck), schema definitions, and bundled skill tree.
 - `plugins/oculus/skills/oculus/`: Bundled skill (SKILL.md + refs + doctrine). This is the canonical skill tree.
 - `config.yaml`: Runtime defaults and agent behavior settings.
 
@@ -201,7 +201,7 @@ classDiagram
 
 ## Safety & Disclaimer
 
-- **Read-Only:** This profile is read-only — it synthesizes market context, portfolio data, and signal analysis only. No order execution tools are bundled.
+- **Read-Only:** This profile is read-only - it synthesizes market context, portfolio data, and signal analysis only. No order execution tools are bundled.
 - **Decision Support:** This project is designed for financial context synthesis and decision support. Automated trading logic (order placement, execution gating) exists only in the `automated-trading` branch and is not included in the default distribution.
 
 ## License

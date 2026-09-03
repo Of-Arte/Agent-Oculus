@@ -20,7 +20,7 @@ Do not:
 - If a service is unavailable, degrade gracefully and say so directly.
 
 ## Quick setup
-1. Set `PUBLIC_API_SECRET_KEY` (optional — for portfolio data) and `WM_BASE_URL`.
+1. Set `PUBLIC_API_SECRET_KEY` (optional - for portfolio data) and `WM_BASE_URL`.
 2. Run `oculus`
 
 ## Default user intent mapping

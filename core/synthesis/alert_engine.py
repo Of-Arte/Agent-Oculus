@@ -6,12 +6,29 @@ from core.schemas import Alert, FinanceContext, NormalizedSignal, generate_alert
 ETF_FLOW_REVERSAL_THRESHOLD = 100_000_000.0
 
 
+def _is_stablecoin_alert(stablecoin) -> bool:
+    return bool(getattr(stablecoin, 'is_depegged', False))
+
+
+def _is_chokepoint_alert(chokepoint) -> bool:
+    return float(getattr(chokepoint, 'score', 0) or 0) > 70
+
+
+def _is_iv_rank_alert(chain) -> bool:
+    iv = getattr(chain, 'iv_rank', None)
+    return iv is not None and float(iv) > 70
+
+
 def build_normalized_signals(context: FinanceContext) -> list[NormalizedSignal]:
     """Builds a list of normalized signals from the given finance context.
 
     Extracts relevant data points (such as market radar verdict, fear and greed index,
     stablecoin status, chokepoint disruptions, and options IV rank) and standardizes them
     into a unified signal format for easier analysis.
+
+    An Alert supersedes its Signal per CONTEXT.md: when a data point breaches
+    an alert threshold (stablecoin depeg, chokepoint score >70, IV rank >70),
+    no Signal is emitted for that point — the Alert is the canonical representation.
 
     Args:
         context (FinanceContext): The aggregated financial and macroeconomic context.
@@ -49,6 +66,8 @@ def build_normalized_signals(context: FinanceContext) -> list[NormalizedSignal]:
             )
         )
     for stablecoin in context.stablecoins or []:
+        if _is_stablecoin_alert(stablecoin):
+            continue
         signals.append(
             NormalizedSignal(
                 signal_id=f'stablecoin-{stablecoin.symbol.lower()}',
@@ -65,6 +84,8 @@ def build_normalized_signals(context: FinanceContext) -> list[NormalizedSignal]:
             )
         )
     for chokepoint in context.chokepoints or []:
+        if _is_chokepoint_alert(chokepoint):
+            continue
         signals.append(
             NormalizedSignal(
                 signal_id=f'chokepoint-{chokepoint.name.lower().replace(" ", "-")}',
@@ -81,6 +102,8 @@ def build_normalized_signals(context: FinanceContext) -> list[NormalizedSignal]:
         )
     for ticker, chain in context.options_chains.items():
         if chain.iv_rank is not None:
+            if _is_iv_rank_alert(chain):
+                continue
             signals.append(
                 NormalizedSignal(
                     signal_id=f'iv-rank-{ticker.lower()}',

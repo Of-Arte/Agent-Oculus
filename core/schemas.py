@@ -457,6 +457,8 @@ class OptionsChain:
 
 @dataclass(slots=True)
 class PortfolioSnapshot:
+    """Canonical broker snapshot: account fields + positions. Point-in-time."""
+
     account_id: str
     generated_at: str
     buying_power: float | None
@@ -479,6 +481,8 @@ class PortfolioSnapshot:
 
 @dataclass(slots=True)
 class AccountSnapshot:
+    """Deprecated: legacy alias for account fields without positions. Use PortfolioSnapshot."""
+
     account_id: str
     buying_power: float | None
     cash: float | None
@@ -550,7 +554,7 @@ class Alert:
 
 @dataclass(slots=True)
 class FinanceContext:
-    account: AccountSnapshot | None
+    account: AccountSnapshot | None  # deprecated: use portfolio
     positions: list[Position]
     quotes: dict[str, Quote]
     options_chains: dict[str, OptionsChain]
@@ -571,6 +575,24 @@ class FinanceContext:
     alerts: list[Alert] = field(default_factory=list)
     previous_regime: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+    portfolio: PortfolioSnapshot | None = None
+
+    @property
+    def portfolio_view(self) -> PortfolioSnapshot | None:
+        """Canonical Portfolio View. Prefers portfolio field, derives from account+positions for legacy callers."""
+        if self.portfolio is not None:
+            return self.portfolio
+        if self.account is not None:
+            return PortfolioSnapshot(
+                account_id=self.account.account_id,
+                generated_at=self.timestamp,
+                buying_power=self.account.buying_power,
+                cash=self.account.cash,
+                equity=self.account.equity,
+                positions=list(self.positions),
+                raw=dict(self.account.raw),
+            )
+        return None
 
     @classmethod
     def empty(cls) -> 'FinanceContext':
@@ -596,8 +618,10 @@ class FinanceContext:
         )
 
     def to_dict(self) -> dict[str, Any]:
+        pv = self.portfolio_view
         return {
             'account': self.account.to_dict() if self.account else None,
+            'portfolio': pv.to_dict() if pv else None,
             'positions': [position.to_dict() for position in self.positions],
             'quotes': {key: value.to_dict() for key, value in self.quotes.items()},
             'options_chains': {key: value.to_dict() for key, value in self.options_chains.items()},

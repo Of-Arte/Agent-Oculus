@@ -2,8 +2,8 @@
 
 Registers two coarse tools under the ``oculus`` toolset:
 
-* ``oculus_get_context`` — full portfolio + macro + regime + IV + alerts synthesis
-* ``oculus_healthcheck`` — env/config validation + service availability check
+* ``oculus_get_context`` - full portfolio + macro + regime + IV + alerts synthesis
+* ``oculus_healthcheck`` - env/config validation + service availability check
 
 Plus a bundled skill ``oculus`` (doctrine) resolvable via ``oculus:oculus`` within
 the oculus profile.

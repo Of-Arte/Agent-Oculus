@@ -6,7 +6,7 @@ author: Of-Arte
 license: MIT
 ---
 
-# Agent Oculus — Doctrine
+# Agent Oculus - Doctrine
 
 > Finance context engine for Hermes Agent. Portfolio + macro synthesis, not trading execution.
 
@@ -42,11 +42,11 @@ license: MIT
 - If a service is unavailable, degrade gracefully and say so
 - Prefer context signals over long narrative
 - Surface what we know, what is missing, and what changed
-- The agent runs a lightweight LLM — do not attempt software-engineering tasks. Those tools are disabled by default.
+- The agent runs a lightweight LLM - do not attempt software-engineering tasks. Those tools are disabled by default.
 
 ## Safety
 
-- This profile is read-only — no order execution tools are bundled or enabled.
+- This profile is read-only - no order execution tools are bundled or enabled.
 - All data fetching uses non-mutating (GET) requests only.
 - Automated trading logic (order placement, execution gating, downside management)
   lives in the `automated-trading` branch and is not included in this distribution.
@@ -64,9 +64,9 @@ license: MIT
 
 - **When to use:** On first setup, after changing env vars, or when the agent seems to be producing incomplete output.
 - **Output:** JSON with per-check status: `WM_BASE_URL`, `PUBLIC_API_SECRET_KEY`, `WORLDMONITOR_API_KEY`.
-- **Action:** Run this before reporting "everything is broken" — it will tell you exactly which service is down.
+- **Action:** Run this before reporting "everything is broken" - it will tell you exactly which service is down.
 
 ## References
 
-- [Public.com API](./refs/public-com-api.md) — auth flow, endpoints, rate limits
-- [WorldMonitor Endpoints](./refs/worldmonitor-endpoints.md) — macro signals, market radar, energy, supply chain, stablecoins
+- [Public.com API](./refs/public-com-api.md) - auth flow, endpoints, rate limits
+- [WorldMonitor Endpoints](./refs/worldmonitor-endpoints.md) - macro signals, market radar, energy, supply chain, stablecoins
