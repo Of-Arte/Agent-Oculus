@@ -76,7 +76,8 @@ Because it is a Hermes profile, you can also install third-party Hermes plugins 
 
 ## Project Structure
 - `core/`: Core synthesis engines, API clients, schemas, and IV analysis.
-- `core/synthesis/context_orchestrator.py`: Orchestration entry point (build_context, get_signals_dict).
+- `core/synthesis/context.py`: Canonical deep Module (2-bundle Interface: PublicBundle + WorldMonitorBundle).
+- `core/synthesis/context_builder.py` / `context_orchestrator.py`: Thin shims delegating to `context.py` for backwards compat.
 - `plugins/oculus/`: Hermes plugin - toolpack (oculus_get_context, oculus_healthcheck), schema definitions, and bundled skill tree.
 - `plugins/oculus/skills/oculus/`: Bundled skill (SKILL.md + refs + doctrine). This is the canonical skill tree.
 - `config.yaml`: Runtime defaults and agent behavior settings.
@@ -88,35 +89,43 @@ The following sequence and object relationship diagram illustrates how data flow
 ```mermaid
 flowchart TD
     %% Triggers
-    Agent["Hermes Agent / CLI"] -->|"Invokes Tool"| ToolSignals["core/synthesis/context_orchestrator.py"]
+    Agent["Hermes Agent / CLI"] -->|"Invokes oculus_get_context"| Tool["plugins/oculus/tools.py: oculus_get_context"]
 
-    %% Context Builder
-    ToolSignals -->|"Initiates Build"| ContextBuilder["core/synthesis/context_builder.py"]
+    Tool -->|"Delegates to shim"| Shim["core/synthesis/context_orchestrator.py (shim)"]
+    Shim -->|"2-bundle call"| Canonical["core/synthesis/context.py\nbuild_finance_context(public, wm)"]
+
+    %% Bundles (Seam)
+    Canonical --> PublicBundle["PublicBundle\n(account, market_data, options)"]
+    Canonical --> WMBundle["WorldMonitorBundle\n(macro, market_radar, stablecoin, etf_flow, supply_chain, trade_policy)"]
 
     %% API Clients
     subgraph External APIs
-        WMClient["WorldMonitorClient (Macro/Sentiment)"]
-        BrokerClient["PublicApiClient (Broker Data)"]
+        WMClient["WorldMonitorClient"]
+        BrokerClient["PublicApiClient"]
     end
 
-    ContextBuilder -->|"Async Fetch"| WMClient
-    ContextBuilder -->|"Async Fetch"| BrokerClient
+    PublicBundle -->|"Uses"| BrokerClient
+    WMBundle -->|"Uses"| WMClient
 
-    %% Synthesis Phase
+    %% Concurrent fetch + synthesis
+    Canonical -->|"Concurrent asyncio.gather"| Fetch["Fetch: quotes + options chains + WM slices\n(with _guard + include filter)"]
+
     subgraph Synthesis Engine
-        ContextBuilder -->|"1. Compute Volatility"| IVEngine["core/analytics/iv_rank.py"]
-        ContextBuilder -->|"2. Detect Regime"| RegimeDetector["core/synthesis/regime_detector.py"]
-        ContextBuilder -->|"3. Build Signals"| SignalNormalizer["core/synthesis/alert_engine.py"]
-        ContextBuilder -->|"4. Evaluate Alerts"| AlertEngine["core/synthesis/alert_engine.py"]
+        Fetch --> IVFetch["yfinance fallback\n_estimate_atm_iv / _yfinance_atm_iv"]
+        IVFetch --> IVEngine["core/analytics/iv_rank.py\nIVRankEngine.compute()"]
+        Fetch --> RegimeDetector["core/synthesis/regime_detector.py\ndetect_regime()"]
+        RegimeDetector --> SignalNormalizer["core/synthesis/alert_engine.py\nbuild_normalized_signals()\n(alert supersedes signal)"]
+        SignalNormalizer --> AlertEngine["core/synthesis/alert_engine.py\nevaluate_alerts()"]
     end
 
     %% Output
-    IVEngine -.->|"Metrics"| FinanceContext["FinanceContext (core/schemas.py)"]
-    RegimeDetector -.->|"RegimeResult"| FinanceContext
-    SignalNormalizer -.->|"NormalizedSignals"| FinanceContext
+    IVEngine -.->|"IVRankResult"| FinanceContext["FinanceContext (core/schemas.py)\nportfolio (canonical) + positions/quotes/chains/macro/..."]
+    RegimeDetector -.->|"RegimeResult (RISK_ON/OFF/TRANSITIONAL) + flags"| FinanceContext
+    SignalNormalizer -.->|"Signals"| FinanceContext
     AlertEngine -.->|"Alerts"| FinanceContext
 
-    FinanceContext -->|"Returned to Agent"| ToolSignals
+    FinanceContext --> Formatter["core/output/formatter.py\nformat_for_hermes()"]
+    Formatter -->|"JSON payload"| Tool
 ```
 
 ### Class Relationships & Core Objects
@@ -141,6 +150,21 @@ classDiagram
         +close()
     }
 
+    class PublicBundle {
+        +account : PublicAccountService
+        +market_data : PublicMarketDataService
+        +options : PublicOptionsService
+    }
+
+    class WorldMonitorBundle {
+        +macro : WorldMonitorMacroService
+        +market_radar : WorldMonitorMarketRadarService
+        +stablecoin : WorldMonitorStablecoinService
+        +etf_flow : WorldMonitorBtcEtfFlowService
+        +supply_chain : WorldMonitorSupplyChainService
+        +trade_policy : WorldMonitorTradePolicyService
+    }
+
     class WorldMonitorMacroService {
         -client : WorldMonitorClient
         +get_macro_signals() MacroSignals
@@ -159,9 +183,25 @@ classDiagram
         +list_stablecoin_markets() list
     }
 
+    class WorldMonitorBtcEtfFlowService {
+        -client : WorldMonitorClient
+        +list_etf_flows() list
+    }
+
+    class WorldMonitorSupplyChainService {
+        -client : WorldMonitorClient
+        +get_chokepoint_status() list
+    }
+
+    class WorldMonitorTradePolicyService {
+        -client : WorldMonitorClient
+        +get_trade_restrictions() list
+    }
+
     class PublicAccountService {
         -client : PublicApiClient
-        +get_account_snapshot() AccountSnapshot
+        +get_account_snapshot() AccountSnapshot <<deprecated>>
+        +get_portfolio_snapshot() PortfolioSnapshot
         +list_positions() list
     }
 
@@ -175,28 +215,70 @@ classDiagram
         +get_quotes(symbols) dict
     }
 
+    class PortfolioSnapshot {
+        +account_id : str
+        +buying_power : float
+        +cash : float
+        +equity : float
+        +positions : list
+    }
+
+    class AccountSnapshot {
+        <<deprecated>>
+        +account_id : str
+        +buying_power : float
+        +cash : float
+        +equity : float
+    }
+
     class FinanceContext {
-        +account : AccountSnapshot
+        +portfolio : PortfolioSnapshot <<canonical>>
+        +portfolio_view : property
+        +account : AccountSnapshot <<deprecated>>
         +positions : list
         +quotes : dict
         +options_chains : dict
         +macro : MacroSignals
+        +market_radar : MarketRadarVerdict
+        +fear_greed : FearGreedIndex
+        +stablecoins : list
+        +etf_flows : list
+        +energy : EnergyPrices
+        +chokepoints : list
+        +trade_restrictions : list
+        +bis_policy_rates : list
+        +iv_ranks : list
         +regime : str
         +regime_flags : list
         +signals : list
         +alerts : list
     }
 
+    PublicBundle --> PublicAccountService : groups
+    PublicBundle --> PublicOptionsService : groups
+    PublicBundle --> PublicMarketDataService : groups
+
+    WorldMonitorBundle --> WorldMonitorMacroService : groups
+    WorldMonitorBundle --> WorldMonitorMarketRadarService : groups
+    WorldMonitorBundle --> WorldMonitorStablecoinService : groups
+    WorldMonitorBundle --> WorldMonitorBtcEtfFlowService : groups
+    WorldMonitorBundle --> WorldMonitorSupplyChainService : groups
+    WorldMonitorBundle --> WorldMonitorTradePolicyService : groups
+
     WorldMonitorMacroService --> WorldMonitorClient : Uses
     WorldMonitorMarketRadarService --> WorldMonitorClient : Uses
     WorldMonitorStablecoinService --> WorldMonitorClient : Uses
+    WorldMonitorBtcEtfFlowService --> WorldMonitorClient : Uses
+    WorldMonitorSupplyChainService --> WorldMonitorClient : Uses
+    WorldMonitorTradePolicyService --> WorldMonitorClient : Uses
 
     PublicAccountService --> PublicApiClient : Uses
     PublicOptionsService --> PublicApiClient : Uses
     PublicMarketDataService --> PublicApiClient : Uses
 
-    FinanceContext ..> WorldMonitorMacroService : Aggregates
-    FinanceContext ..> PublicAccountService : Aggregates
+    FinanceContext ..> PublicBundle : Aggregates via context.py
+    FinanceContext ..> WorldMonitorBundle : Aggregates via context.py
+    FinanceContext --> PortfolioSnapshot : contains (canonical)
 ```
 
 ## Safety & Disclaimer

@@ -1,6 +1,6 @@
 ---
 name: oculus
-version: 0.3.0
+version: 0.4.0
 description: "Agent Oculus identity, doctrine, operating rules, and tool guidance"
 author: Of-Arte
 license: MIT

@@ -1,5 +1,5 @@
 name: oculus
-version: 0.3.0
+version: 0.4.0
 description: "Financial context engine - portfolio + macro synthesis for Hermes Agent"
 kind: standalone
 provides_tools:
